@@ -29,17 +29,17 @@ class coopy_Index {
 		$GLOBALS['%s']->push("coopy.Index::indexTable");
 		$__hx__spos = $GLOBALS['%s']->length;
 		$this->indexed_table = $t;
+		if($this->keys->length !== $t->get_height() && $t->get_height() > 0) {
+			$this->keys[$t->get_height() - 1] = null;
+		}
 		{
 			$_g1 = 0;
 			$_g = $t->get_height();
 			while($_g1 < $_g) {
 				$i = $_g1++;
-				$key = null;
-				if($this->keys->length > $i) {
-					$key = $this->keys[$i];
-				} else {
-					$key = $this->toKey($t, $i);
-					$this->keys->push($key);
+				$key = $this->keys[$i];
+				if($key === null) {
+					$this->keys[$i] = $key = $this->toKey($t, $i);
 				}
 				$item = $this->items->get($key);
 				if($item === null) {

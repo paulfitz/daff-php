@@ -5,7 +5,7 @@
 set -e
 
 # assume we are at the same level as main daff repository
-src=$PWD/../daff/daff_php/
+src=$PWD/../daff/php_bin/
 dest=gen
 
 if [ ! -e $src/lib/coopy/Coopy.class.php ]; then
