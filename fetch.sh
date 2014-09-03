@@ -33,7 +33,7 @@ done
 
 # check version
 version=`php gen/index.php version`
-git show $version || {
+git show v$version || {
     git commit -m "$version" -a
     git tag -a "v$version" -m "$version"
 }
