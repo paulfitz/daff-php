@@ -1,5 +1,5 @@
 {
-    "name": "paulfitz/daff",
+    "name": "paulfitz/daff-php",
     "description": "align and compare tables",
     "homepage": "http://github.com/paulfitz/daff",
     "keywords": ["php","csv","diff","patch"],
