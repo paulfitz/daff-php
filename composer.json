@@ -1,0 +1,17 @@
+{
+    "name": "paulfitz/daff",
+    "description": "align and compare tables",
+    "homepage": "http://github.com/paulfitz/daff",
+    "keywords": ["php","csv","diff","patch"],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Paul Fitzpatrick",
+            "email": "paulfitz@alum.mit.edu"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    }
+}
