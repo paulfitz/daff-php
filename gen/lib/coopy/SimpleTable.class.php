@@ -3,121 +3,50 @@
 class coopy_SimpleTable implements coopy_Table{
 	public function __construct($w, $h) {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.SimpleTable::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->data = new haxe_ds_IntMap();
 		$this->w = $w;
 		$this->h = $h;
-		$GLOBALS['%s']->pop();
 	}}
 	public $data;
 	public $w;
 	public $h;
 	public function getTable() {
-		$GLOBALS['%s']->push("coopy.SimpleTable::getTable");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$GLOBALS['%s']->pop();
-			return $this;
-		}
-		$GLOBALS['%s']->pop();
+		return $this;
 	}
 	public function get_width() {
-		$GLOBALS['%s']->push("coopy.SimpleTable::get_width");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->w;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->w;
 	}
 	public function get_height() {
-		$GLOBALS['%s']->push("coopy.SimpleTable::get_height");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->h;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->h;
 	}
 	public function get_size() {
-		$GLOBALS['%s']->push("coopy.SimpleTable::get_size");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->h;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->h;
 	}
 	public function getCell($x, $y) {
-		$GLOBALS['%s']->push("coopy.SimpleTable::getCell");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->data->get($x + $y * $this->w);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->data->get($x + $y * $this->w);
 	}
 	public function setCell($x, $y, $c) {
-		$GLOBALS['%s']->push("coopy.SimpleTable::setCell");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$value = $c;
 		$this->data->set($x + $y * $this->w, $value);
-		$GLOBALS['%s']->pop();
 	}
 	public function toString() {
-		$GLOBALS['%s']->push("coopy.SimpleTable::toString");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = coopy_SimpleTable::tableToString($this);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return coopy_SimpleTable::tableToString($this);
 	}
 	public function getCellView() {
-		$GLOBALS['%s']->push("coopy.SimpleTable::getCellView");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = new coopy_SimpleView();
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return new coopy_SimpleView();
 	}
 	public function isResizable() {
-		$GLOBALS['%s']->push("coopy.SimpleTable::isResizable");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	public function resize($w, $h) {
-		$GLOBALS['%s']->push("coopy.SimpleTable::resize");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->w = $w;
 		$this->h = $h;
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	public function clear() {
-		$GLOBALS['%s']->push("coopy.SimpleTable::clear");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->data = new haxe_ds_IntMap();
-		$GLOBALS['%s']->pop();
 	}
 	public function insertOrDeleteRows($fate, $hfate) {
-		$GLOBALS['%s']->push("coopy.SimpleTable::insertOrDeleteRows");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$data2 = new haxe_ds_IntMap();
 		{
 			$_g1 = 0;
@@ -145,15 +74,9 @@ class coopy_SimpleTable implements coopy_Table{
 		}
 		$this->h = $hfate;
 		$this->data = $data2;
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	public function insertOrDeleteColumns($fate, $wfate) {
-		$GLOBALS['%s']->push("coopy.SimpleTable::insertOrDeleteColumns");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$data2 = new haxe_ds_IntMap();
 		{
 			$_g1 = 0;
@@ -181,17 +104,10 @@ class coopy_SimpleTable implements coopy_Table{
 		}
 		$this->w = $wfate;
 		$this->data = $data2;
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	public function trimBlank() {
-		$GLOBALS['%s']->push("coopy.SimpleTable::trimBlank");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->h === 0) {
-			$GLOBALS['%s']->pop();
 			return true;
 		}
 		$h_test = $this->h;
@@ -244,7 +160,6 @@ class coopy_SimpleTable implements coopy_Table{
 			}
 		}
 		if($nw === $this->w) {
-			$GLOBALS['%s']->pop();
 			return true;
 		}
 		$data2 = new haxe_ds_IntMap();
@@ -272,11 +187,7 @@ class coopy_SimpleTable implements coopy_Table{
 		}
 		$this->w = $nw;
 		$this->data = $data2;
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
@@ -289,8 +200,6 @@ class coopy_SimpleTable implements coopy_Table{
 			throw new HException('Unable to call <'.$m.'>');
 	}
 	static function tableToString($tab) {
-		$GLOBALS['%s']->push("coopy.SimpleTable::tableToString");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$x = "";
 		{
 			$_g1 = 0;
@@ -314,11 +223,7 @@ class coopy_SimpleTable implements coopy_Table{
 				unset($i);
 			}
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $x;
-		}
-		$GLOBALS['%s']->pop();
+		return $x;
 	}
 	static $__properties__ = array("get_size" => "get_size","get_width" => "get_width","get_height" => "get_height");
 	function __toString() { return $this->toString(); }

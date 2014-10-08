@@ -3,12 +3,9 @@
 class coopy_HighlightPatch implements coopy_Row{
 	public function __construct($source, $patch) {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->source = $source;
 		$this->patch = $patch;
 		$this->view = $patch->getCellView();
-		$GLOBALS['%s']->pop();
 	}}
 	public $source;
 	public $patch;
@@ -40,8 +37,6 @@ class coopy_HighlightPatch implements coopy_Row{
 	public $colPermutationRev;
 	public $haveDroppedColumns;
 	public function reset() {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::reset");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->header = new haxe_ds_IntMap();
 		$this->headerPre = new haxe_ds_StringMap();
 		$this->headerPost = new haxe_ds_StringMap();
@@ -65,18 +60,13 @@ class coopy_HighlightPatch implements coopy_Row{
 		$this->colPermutation = null;
 		$this->colPermutationRev = null;
 		$this->haveDroppedColumns = false;
-		$GLOBALS['%s']->pop();
 	}
 	public function apply() {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::apply");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->reset();
 		if($this->patch->get_width() < 2) {
-			$GLOBALS['%s']->pop();
 			return true;
 		}
 		if($this->patch->get_height() < 1) {
-			$GLOBALS['%s']->pop();
 			return true;
 		}
 		$this->payloadCol = 1 + $this->rcOffset;
@@ -108,17 +98,10 @@ class coopy_HighlightPatch implements coopy_Row{
 		}
 		$this->finishRows();
 		$this->finishColumns();
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	public function needSourceColumns() {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::needSourceColumns");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->sourceInPatchCol !== null) {
-			$GLOBALS['%s']->pop();
 			return;
 		}
 		$this->sourceInPatchCol = new haxe_ds_IntMap();
@@ -139,13 +122,9 @@ class coopy_HighlightPatch implements coopy_Row{
 				unset($name,$i,$at);
 			}
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function needSourceIndex() {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::needSourceIndex");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->indexes !== null) {
-			$GLOBALS['%s']->pop();
 			return;
 		}
 		$state = new coopy_TableComparisonState();
@@ -157,15 +136,11 @@ class coopy_HighlightPatch implements coopy_Row{
 		$comp->align();
 		$this->indexes = $comp->getIndexes();
 		$this->needSourceColumns();
-		$GLOBALS['%s']->pop();
 	}
 	public function applyRow($r) {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::applyRow");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->currentRow = $r;
 		$code = $this->actions[$r];
-		if($r === 0 && $this->rcOffset > 0) {
-		} else {
+		if($r === 0 && $this->rcOffset > 0) {} else {
 			if($code === "@@") {
 				$this->applyHeader();
 				$this->applyAction("@@");
@@ -193,31 +168,14 @@ class coopy_HighlightPatch implements coopy_Row{
 				}
 			}
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function getDatum($c) {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::getDatum");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->patch->getCell($c, $this->currentRow);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->patch->getCell($c, $this->currentRow);
 	}
 	public function getString($c) {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::getString");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->view->toString($this->getDatum($c));
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->view->toString($this->getDatum($c));
 	}
 	public function applyMeta() {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::applyMeta");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$_g1 = $this->payloadCol;
 		$_g = $this->payloadTop;
 		while($_g1 < $_g) {
@@ -229,11 +187,8 @@ class coopy_HighlightPatch implements coopy_Row{
 			$this->modifier->set($i, $name);
 			unset($name,$i);
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function applyHeader() {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::applyHeader");
-		$__hx__spos = $GLOBALS['%s']->length;
 		{
 			$_g1 = $this->payloadCol;
 			$_g = $this->payloadTop;
@@ -282,17 +237,13 @@ class coopy_HighlightPatch implements coopy_Row{
 		if($this->source->get_height() === 0) {
 			$this->applyAction("+++");
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function lookUp($del = null) {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::lookUp");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($del === null) {
 			$del = 0;
 		}
 		$at = $this->patchInSourceRow->get($this->currentRow + $del);
 		if($at !== null) {
-			$GLOBALS['%s']->pop();
 			return $at;
 		}
 		$result = -1;
@@ -317,15 +268,9 @@ class coopy_HighlightPatch implements coopy_Row{
 			$result;
 		}
 		$this->currentRow -= $del;
-		{
-			$GLOBALS['%s']->pop();
-			return $result;
-		}
-		$GLOBALS['%s']->pop();
+		return $result;
 	}
 	public function applyAction($code) {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::applyAction");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$mod = new coopy_HighlightPatchUnit();
 		$mod->code = $code;
 		$mod->add = $code === "+++";
@@ -359,96 +304,59 @@ class coopy_HighlightPatch implements coopy_Row{
 			$mod->sourceRow = 0;
 		}
 		$this->mods->push($mod);
-		$GLOBALS['%s']->pop();
 	}
 	public function checkAct() {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::checkAct");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$act = $this->getString($this->rcOffset);
 		if($this->rowInfo->value !== $act) {
 			coopy_DiffRender::examineCell(0, 0, $act, "", $act, "", $this->rowInfo);
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function getPreString($txt) {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::getPreString");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->checkAct();
 		if(!$this->rowInfo->updated) {
-			$GLOBALS['%s']->pop();
 			return $txt;
 		}
 		coopy_DiffRender::examineCell(0, 0, $txt, "", $this->rowInfo->value, "", $this->cellInfo);
 		if(!$this->cellInfo->updated) {
-			$GLOBALS['%s']->pop();
 			return $txt;
 		}
-		{
-			$tmp = $this->cellInfo->lvalue;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->cellInfo->lvalue;
 	}
 	public function getRowString($c) {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::getRowString");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$at = $this->sourceInPatchCol->get($c);
 		if($at === null) {
-			$GLOBALS['%s']->pop();
 			return "NOT_FOUND";
 		}
-		{
-			$tmp = $this->getPreString($this->getString($at));
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->getPreString($this->getString($at));
 	}
 	public function sortMods($a, $b) {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::sortMods");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($b->code === "@@" && $a->code !== "@@") {
-			$GLOBALS['%s']->pop();
 			return 1;
 		}
 		if($a->code === "@@" && $b->code !== "@@") {
-			$GLOBALS['%s']->pop();
 			return -1;
 		}
 		if($a->sourceRow === -1 && !$a->add && $b->sourceRow !== -1) {
-			$GLOBALS['%s']->pop();
 			return 1;
 		}
 		if($a->sourceRow !== -1 && !$b->add && $b->sourceRow === -1) {
-			$GLOBALS['%s']->pop();
 			return -1;
 		}
 		if($a->sourceRow + $a->sourceRowOffset > $b->sourceRow + $b->sourceRowOffset) {
-			$GLOBALS['%s']->pop();
 			return 1;
 		}
 		if($a->sourceRow + $a->sourceRowOffset < $b->sourceRow + $b->sourceRowOffset) {
-			$GLOBALS['%s']->pop();
 			return -1;
 		}
 		if($a->patchRow > $b->patchRow) {
-			$GLOBALS['%s']->pop();
 			return 1;
 		}
 		if($a->patchRow < $b->patchRow) {
-			$GLOBALS['%s']->pop();
 			return -1;
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return 0;
-		}
-		$GLOBALS['%s']->pop();
+		return 0;
 	}
 	public function processMods($rmods, $fate, $len) {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::processMods");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$rmods->sort((isset($this->sortMods) ? $this->sortMods: array($this, "sortMods")));
 		$offset = 0;
 		$last = -1;
@@ -503,16 +411,9 @@ class coopy_HighlightPatch implements coopy_Row{
 				unset($i1);
 			}
 		}
-		{
-			$tmp = $len + $offset;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $len + $offset;
 	}
 	public function computeOrdering($mods, $permutation, $permutationRev, $dim) {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::computeOrdering");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$to_unit = new haxe_ds_IntMap();
 		$from_unit = new haxe_ds_IntMap();
 		$meta_from_unit = new haxe_ds_IntMap();
@@ -634,19 +535,13 @@ class coopy_HighlightPatch implements coopy_Row{
 				}
 			}
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function permuteRows() {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::permuteRows");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->rowPermutation = new _hx_array(array());
 		$this->rowPermutationRev = new _hx_array(array());
 		$this->computeOrdering($this->mods, $this->rowPermutation, $this->rowPermutationRev, $this->source->get_height());
-		$GLOBALS['%s']->pop();
 	}
 	public function finishRows() {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::finishRows");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$fate = new _hx_array(array());
 		$this->permuteRows();
 		if($this->rowPermutation->length > 0) {
@@ -715,27 +610,19 @@ class coopy_HighlightPatch implements coopy_Row{
 				unset($mod1);
 			}
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function permuteColumns() {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::permuteColumns");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->headerMove === null) {
-			$GLOBALS['%s']->pop();
 			return;
 		}
 		$this->colPermutation = new _hx_array(array());
 		$this->colPermutationRev = new _hx_array(array());
 		$this->computeOrdering($this->cmods, $this->colPermutation, $this->colPermutationRev, $this->source->get_width());
 		if($this->colPermutation->length === 0) {
-			$GLOBALS['%s']->pop();
 			return;
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function finishColumns() {
-		$GLOBALS['%s']->push("coopy.HighlightPatch::finishColumns");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->needSourceColumns();
 		{
 			$_g1 = $this->payloadCol;
@@ -874,7 +761,6 @@ class coopy_HighlightPatch implements coopy_Row{
 				unset($next_name,$name,$i2);
 			}
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

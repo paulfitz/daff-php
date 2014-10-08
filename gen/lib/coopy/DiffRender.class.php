@@ -3,12 +3,9 @@
 class coopy_DiffRender {
 	public function __construct() {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.DiffRender::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->text_to_insert = new _hx_array(array());
 		$this->open = false;
 		$this->pretty_arrows = true;
-		$GLOBALS['%s']->pop();
 	}}
 	public $text_to_insert;
 	public $td_open;
@@ -16,26 +13,15 @@ class coopy_DiffRender {
 	public $open;
 	public $pretty_arrows;
 	public function usePrettyArrows($flag) {
-		$GLOBALS['%s']->push("coopy.DiffRender::usePrettyArrows");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->pretty_arrows = $flag;
-		$GLOBALS['%s']->pop();
 	}
 	public function insert($str) {
-		$GLOBALS['%s']->push("coopy.DiffRender::insert");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->text_to_insert->push($str);
-		$GLOBALS['%s']->pop();
 	}
 	public function beginTable() {
-		$GLOBALS['%s']->push("coopy.DiffRender::beginTable");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->insert("<table>\x0A");
-		$GLOBALS['%s']->pop();
 	}
 	public function beginRow($mode) {
-		$GLOBALS['%s']->push("coopy.DiffRender::beginRow");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->td_open = "<td";
 		$this->td_close = "</td>";
 		$row_class = "";
@@ -50,11 +36,8 @@ class coopy_DiffRender {
 			$tr = "<tr class=\"" . _hx_string_or_null($row_class) . "\">";
 		}
 		$this->insert($tr);
-		$GLOBALS['%s']->pop();
 	}
 	public function insertCell($txt, $mode) {
-		$GLOBALS['%s']->push("coopy.DiffRender::insertCell");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$cell_decorate = "";
 		if($mode !== "") {
 			$cell_decorate = " class=\"" . _hx_string_or_null($mode) . "\"";
@@ -62,45 +45,21 @@ class coopy_DiffRender {
 		$this->insert(_hx_string_or_null($this->td_open) . _hx_string_or_null($cell_decorate) . ">");
 		$this->insert($txt);
 		$this->insert($this->td_close);
-		$GLOBALS['%s']->pop();
 	}
 	public function endRow() {
-		$GLOBALS['%s']->push("coopy.DiffRender::endRow");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->insert("</tr>\x0A");
-		$GLOBALS['%s']->pop();
 	}
 	public function endTable() {
-		$GLOBALS['%s']->push("coopy.DiffRender::endTable");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->insert("</table>\x0A");
-		$GLOBALS['%s']->pop();
 	}
 	public function html() {
-		$GLOBALS['%s']->push("coopy.DiffRender::html");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->text_to_insert->join("");
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->text_to_insert->join("");
 	}
 	public function toString() {
-		$GLOBALS['%s']->push("coopy.DiffRender::toString");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->html();
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->html();
 	}
 	public function render($rows) {
-		$GLOBALS['%s']->push("coopy.DiffRender::render");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($rows->get_width() === 0 || $rows->get_height() === 0) {
-			$GLOBALS['%s']->pop();
 			return;
 		}
 		$render = $this;
@@ -117,7 +76,6 @@ class coopy_DiffRender {
 		}
 		if($off > 0) {
 			if($rows->get_width() <= 1 || $rows->get_height() <= 1) {
-				$GLOBALS['%s']->pop();
 				return;
 			}
 		}
@@ -153,25 +111,15 @@ class coopy_DiffRender {
 			}
 		}
 		$render->endTable();
-		$GLOBALS['%s']->pop();
 	}
 	public function sampleCss() {
-		$GLOBALS['%s']->push("coopy.DiffRender::sampleCss");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$GLOBALS['%s']->pop();
-			return ".highlighter .add { \x0A  background-color: #7fff7f;\x0A}\x0A\x0A.highlighter .remove { \x0A  background-color: #ff7f7f;\x0A}\x0A\x0A.highlighter td.modify { \x0A  background-color: #7f7fff;\x0A}\x0A\x0A.highlighter td.conflict { \x0A  background-color: #f00;\x0A}\x0A\x0A.highlighter .spec { \x0A  background-color: #aaa;\x0A}\x0A\x0A.highlighter .move { \x0A  background-color: #ffa;\x0A}\x0A\x0A.highlighter .null { \x0A  color: #888;\x0A}\x0A\x0A.highlighter table { \x0A  border-collapse:collapse;\x0A}\x0A\x0A.highlighter td, .highlighter th {\x0A  border: 1px solid #2D4068;\x0A  padding: 3px 7px 2px;\x0A}\x0A\x0A.highlighter th, .highlighter .header { \x0A  background-color: #aaf;\x0A  font-weight: bold;\x0A  padding-bottom: 4px;\x0A  padding-top: 5px;\x0A  text-align:left;\x0A}\x0A\x0A.highlighter tr:first-child td {\x0A  border-top: 1px solid #2D4068;\x0A}\x0A\x0A.highlighter td:first-child { \x0A  border-left: 1px solid #2D4068;\x0A}\x0A\x0A.highlighter td {\x0A  empty-cells: show;\x0A}\x0A";
-		}
-		$GLOBALS['%s']->pop();
+		return ".highlighter .add { \x0A  background-color: #7fff7f;\x0A}\x0A\x0A.highlighter .remove { \x0A  background-color: #ff7f7f;\x0A}\x0A\x0A.highlighter td.modify { \x0A  background-color: #7f7fff;\x0A}\x0A\x0A.highlighter td.conflict { \x0A  background-color: #f00;\x0A}\x0A\x0A.highlighter .spec { \x0A  background-color: #aaa;\x0A}\x0A\x0A.highlighter .move { \x0A  background-color: #ffa;\x0A}\x0A\x0A.highlighter .null { \x0A  color: #888;\x0A}\x0A\x0A.highlighter table { \x0A  border-collapse:collapse;\x0A}\x0A\x0A.highlighter td, .highlighter th {\x0A  border: 1px solid #2D4068;\x0A  padding: 3px 7px 2px;\x0A}\x0A\x0A.highlighter th, .highlighter .header { \x0A  background-color: #aaf;\x0A  font-weight: bold;\x0A  padding-bottom: 4px;\x0A  padding-top: 5px;\x0A  text-align:left;\x0A}\x0A\x0A.highlighter tr:first-child td {\x0A  border-top: 1px solid #2D4068;\x0A}\x0A\x0A.highlighter td:first-child { \x0A  border-left: 1px solid #2D4068;\x0A}\x0A\x0A.highlighter td {\x0A  empty-cells: show;\x0A}\x0A";
 	}
 	public function completeHtml() {
-		$GLOBALS['%s']->push("coopy.DiffRender::completeHtml");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->text_to_insert->insert(0, "<html>\x0A<meta charset='utf-8'>\x0A<head>\x0A<style TYPE='text/css'>\x0A");
 		$this->text_to_insert->insert(1, $this->sampleCss());
 		$this->text_to_insert->insert(2, "</style>\x0A</head>\x0A<body>\x0A<div class='highlighter'>\x0A");
 		$this->text_to_insert->push("</div>\x0A</body>\x0A</html>\x0A");
-		$GLOBALS['%s']->pop();
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
@@ -184,8 +132,6 @@ class coopy_DiffRender {
 			throw new HException('Unable to call <'.$m.'>');
 	}
 	static function examineCell($x, $y, $value, $vcol, $vrow, $vcorner, $cell) {
-		$GLOBALS['%s']->push("coopy.DiffRender::examineCell");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$cell->category = "";
 		$cell->category_given_tr = "";
 		$cell->separator = "";
@@ -287,23 +233,17 @@ class coopy_DiffRender {
 				}
 			}
 		}
-		$GLOBALS['%s']->pop();
 	}
 	static function markSpaces($sl, $sr) {
-		$GLOBALS['%s']->push("coopy.DiffRender::markSpaces");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($sl === $sr) {
-			$GLOBALS['%s']->pop();
 			return $sl;
 		}
 		if($sl === null || $sr === null) {
-			$GLOBALS['%s']->pop();
 			return $sl;
 		}
 		$slc = str_replace(" ", "", $sl);
 		$src = str_replace(" ", "", $sr);
 		if($slc !== $src) {
-			$GLOBALS['%s']->pop();
 			return $sl;
 		}
 		$slo = "";
@@ -329,15 +269,9 @@ class coopy_DiffRender {
 			}
 			unset($cr,$cl);
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $slo;
-		}
-		$GLOBALS['%s']->pop();
+		return $slo;
 	}
 	static function renderCell($tt, $x, $y) {
-		$GLOBALS['%s']->push("coopy.DiffRender::renderCell");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$cell = new coopy_CellInfo();
 		$corner = $tt->getCellText(0, 0);
 		$off = null;
@@ -347,11 +281,7 @@ class coopy_DiffRender {
 			$off = 0;
 		}
 		coopy_DiffRender::examineCell($x, $y, $tt->getCellText($x, $y), $tt->getCellText($x, $off), $tt->getCellText($off, $y), $corner, $cell);
-		{
-			$GLOBALS['%s']->pop();
-			return $cell;
-		}
-		$GLOBALS['%s']->pop();
+		return $cell;
 	}
 	function __toString() { return $this->toString(); }
 }

@@ -3,19 +3,14 @@
 class coopy_TableDiff {
 	public function __construct($align, $flags) {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.TableDiff::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->align = $align;
 		$this->flags = $flags;
-		$GLOBALS['%s']->pop();
 	}}
 	public $align;
 	public $flags;
 	public $l_prev;
 	public $r_prev;
 	public function getSeparator($t, $t2, $root) {
-		$GLOBALS['%s']->push("coopy.TableDiff::getSeparator");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$sep = $root;
 		$w = $t->get_width();
 		$h = $t->get_height();
@@ -68,18 +63,11 @@ class coopy_TableDiff {
 				}
 			}
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $sep;
-		}
-		$GLOBALS['%s']->pop();
+		return $sep;
 	}
 	public function quoteForDiff($v, $d) {
-		$GLOBALS['%s']->push("coopy.TableDiff::quoteForDiff");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$nil = "NULL";
 		if($v->equals($d, null)) {
-			$GLOBALS['%s']->pop();
 			return $nil;
 		}
 		$str = $v->toString($d);
@@ -99,15 +87,9 @@ class coopy_TableDiff {
 		if(_hx_substr($str, $score, null) === $nil) {
 			$str = "_" . _hx_string_or_null($str);
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $str;
-		}
-		$GLOBALS['%s']->pop();
+		return $str;
 	}
 	public function isReordered($m, $ct) {
-		$GLOBALS['%s']->push("coopy.TableDiff::isReordered");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$reordered = false;
 		$l = -1;
 		$r = -1;
@@ -136,15 +118,9 @@ class coopy_TableDiff {
 				unset($unit,$i);
 			}
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $reordered;
-		}
-		$GLOBALS['%s']->pop();
+		return $reordered;
 	}
 	public function spreadContext($units, $del, $active) {
-		$GLOBALS['%s']->push("coopy.TableDiff::spreadContext");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($del > 0 && $active !== null) {
 			$mark = -$del - 1;
 			$skips = 0;
@@ -204,11 +180,8 @@ class coopy_TableDiff {
 				}
 			}
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function reportUnit($unit) {
-		$GLOBALS['%s']->push("coopy.TableDiff::reportUnit");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$txt = $unit->toString();
 		$reordered = false;
 		if($unit->l >= 0) {
@@ -226,17 +199,10 @@ class coopy_TableDiff {
 		if($reordered) {
 			$txt = "[" . _hx_string_or_null($txt) . "]";
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $txt;
-		}
-		$GLOBALS['%s']->pop();
+		return $txt;
 	}
 	public function hilite($output) {
-		$GLOBALS['%s']->push("coopy.TableDiff::hilite");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if(!$output->isResizable()) {
-			$GLOBALS['%s']->pop();
 			return false;
 		}
 		$output->resize(0, 0);
@@ -884,11 +850,7 @@ class coopy_TableDiff {
 				}
 			}
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

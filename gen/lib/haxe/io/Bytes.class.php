@@ -3,26 +3,16 @@
 class haxe_io_Bytes {
 	public function __construct($length, $b) {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("haxe.io.Bytes::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->length = $length;
 		$this->b = $b;
-		$GLOBALS['%s']->pop();
 	}}
 	public $length;
 	public $b;
 	public function getString($pos, $len) {
-		$GLOBALS['%s']->push("haxe.io.Bytes::getString");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($pos < 0 || $len < 0 || $pos + $len > $this->length) {
 			throw new HException(haxe_io_Error::$OutsideBounds);
 		}
-		{
-			$tmp = substr($this->b, $pos, $len);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return substr($this->b, $pos, $len);
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
@@ -35,14 +25,7 @@ class haxe_io_Bytes {
 			throw new HException('Unable to call <'.$m.'>');
 	}
 	static function ofString($s) {
-		$GLOBALS['%s']->push("haxe.io.Bytes::ofString");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = new haxe_io_Bytes(strlen($s), $s);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return new haxe_io_Bytes(strlen($s), $s);
 	}
 	function __toString() { return 'haxe.io.Bytes'; }
 }

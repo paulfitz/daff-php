@@ -3,14 +3,11 @@
 class coopy_Viterbi {
 	public function __construct() {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.Viterbi::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->K = $this->T = 0;
 		$this->reset();
 		$this->cost = new coopy_SparseSheet();
 		$this->src = new coopy_SparseSheet();
 		$this->path = new coopy_SparseSheet();
-		$GLOBALS['%s']->pop();
 	}}
 	public $K;
 	public $T;
@@ -22,36 +19,25 @@ class coopy_Viterbi {
 	public $src;
 	public $path;
 	public function reset() {
-		$GLOBALS['%s']->push("coopy.Viterbi::reset");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->index = 0;
 		$this->mode = 0;
 		$this->path_valid = false;
 		$this->best_cost = 0;
-		$GLOBALS['%s']->pop();
 	}
 	public function setSize($states, $sequence_length) {
-		$GLOBALS['%s']->push("coopy.Viterbi::setSize");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->K = $states;
 		$this->T = $sequence_length;
 		$this->cost->resize($this->K, $this->T, 0);
 		$this->src->resize($this->K, $this->T, -1);
 		$this->path->resize(1, $this->T, -1);
-		$GLOBALS['%s']->pop();
 	}
 	public function assertMode($next) {
-		$GLOBALS['%s']->push("coopy.Viterbi::assertMode");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($next === 0 && $this->mode === 1) {
 			$this->index++;
 		}
 		$this->mode = $next;
-		$GLOBALS['%s']->pop();
 	}
 	public function addTransition($s0, $s1, $c) {
-		$GLOBALS['%s']->push("coopy.Viterbi::addTransition");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$resize = false;
 		if($s0 >= $this->K) {
 			$this->K = $s0 + 1;
@@ -87,27 +73,17 @@ class coopy_Viterbi {
 				$this->src->set($s1, $this->index, $s0);
 			}
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function endTransitions() {
-		$GLOBALS['%s']->push("coopy.Viterbi::endTransitions");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->path_valid = false;
 		$this->assertMode(0);
-		$GLOBALS['%s']->pop();
 	}
 	public function beginTransitions() {
-		$GLOBALS['%s']->push("coopy.Viterbi::beginTransitions");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->path_valid = false;
 		$this->assertMode(1);
-		$GLOBALS['%s']->pop();
 	}
 	public function calculatePath() {
-		$GLOBALS['%s']->push("coopy.Viterbi::calculatePath");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->path_valid) {
-			$GLOBALS['%s']->pop();
 			return;
 		}
 		$this->endTransitions();
@@ -115,10 +91,7 @@ class coopy_Viterbi {
 		$bestj = -1;
 		if($this->index <= 0) {
 			$this->path_valid = true;
-			{
-				$GLOBALS['%s']->pop();
-				return;
-			}
+			return;
 		}
 		{
 			$_g1 = 0;
@@ -148,11 +121,8 @@ class coopy_Viterbi {
 			}
 		}
 		$this->path_valid = true;
-		$GLOBALS['%s']->pop();
 	}
 	public function toString() {
-		$GLOBALS['%s']->push("coopy.Viterbi::toString");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->calculatePath();
 		$txt = "";
 		{
@@ -172,46 +142,21 @@ class coopy_Viterbi {
 			}
 		}
 		$txt .= " costs " . _hx_string_rec($this->getCost(), "");
-		{
-			$GLOBALS['%s']->pop();
-			return $txt;
-		}
-		$GLOBALS['%s']->pop();
+		return $txt;
 	}
 	public function length() {
-		$GLOBALS['%s']->push("coopy.Viterbi::length");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->index > 0) {
 			$this->calculatePath();
 		}
-		{
-			$tmp = $this->index;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->index;
 	}
 	public function get($i) {
-		$GLOBALS['%s']->push("coopy.Viterbi::get");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->calculatePath();
-		{
-			$tmp = $this->path->get(0, $i);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->path->get(0, $i);
 	}
 	public function getCost() {
-		$GLOBALS['%s']->push("coopy.Viterbi::getCost");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->calculatePath();
-		{
-			$tmp = $this->best_cost;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->best_cost;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

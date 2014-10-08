@@ -1,12 +1,7 @@
 <?php
 
 class coopy_CellInfo {
-	public function __construct() {
-		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.CellInfo::new");
-		$__hx__spos = $GLOBALS['%s']->length;
-		$GLOBALS['%s']->pop();
-	}}
+	public function __construct() {}
 	public $value;
 	public $pretty_value;
 	public $category;
@@ -19,25 +14,15 @@ class coopy_CellInfo {
 	public $lvalue;
 	public $rvalue;
 	public function toString() {
-		$GLOBALS['%s']->push("coopy.CellInfo::toString");
-		$__hx__spos = $GLOBALS['%s']->length;
+		if(!php_Boot::$skip_constructor) {
 		if(!$this->updated) {
-			$tmp = $this->value;
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return $this->value;
 		}
 		if(!$this->conflicted) {
-			$tmp = _hx_string_or_null($this->lvalue) . "::" . _hx_string_or_null($this->rvalue);
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return _hx_string_or_null($this->lvalue) . "::" . _hx_string_or_null($this->rvalue);
 		}
-		{
-			$tmp = _hx_string_or_null($this->pvalue) . "||" . _hx_string_or_null($this->lvalue) . "::" . _hx_string_or_null($this->rvalue);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
-	}
+		return _hx_string_or_null($this->pvalue) . "||" . _hx_string_or_null($this->lvalue) . "::" . _hx_string_or_null($this->rvalue);
+	}}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);

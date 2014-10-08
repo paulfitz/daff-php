@@ -1,27 +1,16 @@
 <?php
 
 class coopy_IndexItem {
-	public function __construct() {
-		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.IndexItem::new");
-		$__hx__spos = $GLOBALS['%s']->length;
-		$GLOBALS['%s']->pop();
-	}}
+	public function __construct() {}
 	public $lst;
 	public function add($i) {
-		$GLOBALS['%s']->push("coopy.IndexItem::add");
-		$__hx__spos = $GLOBALS['%s']->length;
+		if(!php_Boot::$skip_constructor) {
 		if($this->lst === null) {
 			$this->lst = new _hx_array(array());
 		}
 		$this->lst->push($i);
-		{
-			$tmp = $this->lst->length;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
-	}
+		return $this->lst->length;
+	}}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);

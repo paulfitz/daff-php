@@ -3,10 +3,7 @@
 class coopy_TableComparisonState {
 	public function __construct() {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.TableComparisonState::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->reset();
-		$GLOBALS['%s']->pop();
 	}}
 	public $p;
 	public $a;
@@ -19,8 +16,6 @@ class coopy_TableComparisonState {
 	public $has_same_columns_known;
 	public $compare_flags;
 	public function reset() {
-		$GLOBALS['%s']->push("coopy.TableComparisonState::reset");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->completed = false;
 		$this->run_to_completion = true;
 		$this->is_equal_known = false;
@@ -28,7 +23,6 @@ class coopy_TableComparisonState {
 		$this->has_same_columns = false;
 		$this->has_same_columns_known = false;
 		$this->compare_flags = null;
-		$GLOBALS['%s']->pop();
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

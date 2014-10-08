@@ -3,13 +3,10 @@
 class coopy_Coopy {
 	public function __construct() {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.Coopy::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->extern_preference = false;
 		$this->format_preference = null;
 		$this->delim_preference = null;
 		$this->output_format = "copy";
-		$GLOBALS['%s']->pop();
 	}}
 	public $format_preference;
 	public $delim_preference;
@@ -18,12 +15,8 @@ class coopy_Coopy {
 	public $io;
 	public $mv;
 	public function checkFormat($name) {
-		$GLOBALS['%s']->push("coopy.Coopy::checkFormat");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->extern_preference) {
-			$tmp = $this->format_preference;
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return $this->format_preference;
 		}
 		$ext = "";
 		$pt = _hx_last_index_of($name, ".", null);
@@ -50,23 +43,14 @@ class coopy_Coopy {
 			}break;
 			}
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $ext;
-		}
-		$GLOBALS['%s']->pop();
+		return $ext;
 	}
 	public function setFormat($name) {
-		$GLOBALS['%s']->push("coopy.Coopy::setFormat");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->extern_preference = false;
 		$this->checkFormat("." . _hx_string_or_null($name));
 		$this->extern_preference = true;
-		$GLOBALS['%s']->pop();
 	}
 	public function saveTable($name, $t) {
-		$GLOBALS['%s']->push("coopy.Coopy::saveTable");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->output_format !== "copy") {
 			$this->setFormat($this->output_format);
 		}
@@ -79,30 +63,17 @@ class coopy_Coopy {
 			$value = coopy_Coopy::jsonify($t);
 			$txt = haxe_Json::phpJsonEncode($value, null, null);
 		}
-		{
-			$tmp = $this->saveText($name, $txt);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->saveText($name, $txt);
 	}
 	public function saveText($name, $txt) {
-		$GLOBALS['%s']->push("coopy.Coopy::saveText");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($name !== "-") {
 			$this->io->saveContent($name, $txt);
 		} else {
 			$this->io->writeStdout($txt);
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	public function loadTable($name) {
-		$GLOBALS['%s']->push("coopy.Coopy::loadTable");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$txt = $this->io->getContent($name);
 		$ext = $this->checkFormat($name);
 		if($ext === "json" || $ext === "") {
@@ -113,19 +84,11 @@ class coopy_Coopy {
 				if($t === null) {
 					throw new HException("JSON failed");
 				}
-				{
-					$GLOBALS['%s']->pop();
-					return $t;
-				}
+				return $t;
 			}catch(Exception $__hx__e) {
 				$_ex_ = ($__hx__e instanceof HException) ? $__hx__e->e : $__hx__e;
 				$e = $_ex_;
 				{
-					$GLOBALS['%e'] = (new _hx_array(array()));
-					while($GLOBALS['%s']->length >= $__hx__spos) {
-						$GLOBALS['%e']->unshift($GLOBALS['%s']->pop());
-					}
-					$GLOBALS['%s']->push($GLOBALS['%e'][0]);
 					if($ext === "json") {
 						throw new HException($e);
 					}
@@ -161,17 +124,11 @@ class coopy_Coopy {
 		if($output !== null) {
 			$output->trimBlank();
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $output;
-		}
-		$GLOBALS['%s']->pop();
+		return $output;
 	}
 	public $status;
 	public $daff_cmd;
 	public function command($io, $cmd, $args) {
-		$GLOBALS['%s']->push("coopy.Coopy::command");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$r = 0;
 		if($io->async()) {
 			$r = $io->command($cmd, $args);
@@ -200,15 +157,9 @@ class coopy_Coopy {
 		if(!$io->async()) {
 			$r = $io->command($cmd, $args);
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $r;
-		}
-		$GLOBALS['%s']->pop();
+		return $r;
 	}
 	public function installGitDriver($io, $formats) {
-		$GLOBALS['%s']->push("coopy.Coopy::installGitDriver");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$r = 0;
 		if($this->status === null) {
 			$this->status = new haxe_ds_StringMap();
@@ -233,16 +184,12 @@ class coopy_Coopy {
 		if(!$this->status->exists($key)) {
 			$r = $this->command($io, "git", (new _hx_array(array("--version"))));
 			if($r === 999) {
-				$GLOBALS['%s']->pop();
 				return $r;
 			}
 			$this->status->set($key, $r);
 			if($r !== 0) {
 				$io->writeStderr("! Cannot run git, aborting\x0A");
-				{
-					$GLOBALS['%s']->pop();
-					return 1;
-				}
+				return 1;
 			}
 			$io->writeStdout("- Can run git\x0A");
 		}
@@ -257,7 +204,6 @@ class coopy_Coopy {
 					if(!$this->status->exists($key1)) {
 						$r = $this->command($io, $daff, (new _hx_array(array("version"))));
 						if($r === 999) {
-							$GLOBALS['%s']->pop();
 							return $r;
 						}
 						$this->status->set($key1, $r);
@@ -272,10 +218,7 @@ class coopy_Coopy {
 			}
 			if($this->daff_cmd === "") {
 				$io->writeStderr("! Cannot find daff, is it in your path?\x0A");
-				{
-					$GLOBALS['%s']->pop();
-					return 1;
-				}
+				return 1;
 			}
 		}
 		{
@@ -287,7 +230,6 @@ class coopy_Coopy {
 				if(!$this->status->exists($key)) {
 					$r = $this->command($io, "git", (new _hx_array(array("config", "--global", "--get", "diff.daff-" . _hx_string_or_null($format1) . ".command"))));
 					if($r === 999) {
-						$GLOBALS['%s']->pop();
 						return $r;
 					}
 					$this->status->set($key, $r);
@@ -298,7 +240,6 @@ class coopy_Coopy {
 					if(!$have_diff_driver) {
 						$r = $this->command($io, "git", (new _hx_array(array("config", "--global", "diff.daff-" . _hx_string_or_null($format1) . ".command", _hx_string_or_null($this->daff_cmd) . " diff --color --git"))));
 						if($r === 999) {
-							$GLOBALS['%s']->pop();
 							return $r;
 						}
 						$io->writeStdout("- Added diff driver for " . _hx_string_or_null($format1) . "\x0A");
@@ -312,7 +253,6 @@ class coopy_Coopy {
 				if(!$this->status->exists($key)) {
 					$r = $this->command($io, "git", (new _hx_array(array("config", "--global", "--get", "merge.daff-" . _hx_string_or_null($format1) . ".driver"))));
 					if($r === 999) {
-						$GLOBALS['%s']->pop();
 						return $r;
 					}
 					$this->status->set($key, $r);
@@ -323,7 +263,6 @@ class coopy_Coopy {
 					if(!$have_merge_driver) {
 						$r = $this->command($io, "git", (new _hx_array(array("config", "--global", "merge.daff-" . _hx_string_or_null($format1) . ".name", "daff tabular " . _hx_string_or_null($format1) . " merge"))));
 						if($r === 999) {
-							$GLOBALS['%s']->pop();
 							return $r;
 						}
 					} else {
@@ -336,7 +275,6 @@ class coopy_Coopy {
 					if(!$have_merge_driver) {
 						$r = $this->command($io, "git", (new _hx_array(array("config", "--global", "merge.daff-" . _hx_string_or_null($format1) . ".driver", _hx_string_or_null($this->daff_cmd) . " merge --output %A %O %A %B"))));
 						if($r === 999) {
-							$GLOBALS['%s']->pop();
 							return $r;
 						}
 						$io->writeStdout("- Added merge driver for " . _hx_string_or_null($format1) . "\x0A");
@@ -352,10 +290,7 @@ class coopy_Coopy {
 		if(!$io->exists(".git/config")) {
 			$io->writeStderr("! This next part needs to happen in a git repository.\x0A");
 			$io->writeStderr("! Please run again from the root of a git repository.\x0A");
-			{
-				$GLOBALS['%s']->pop();
-				return 1;
-			}
+			return 1;
 		}
 		$attr = ".gitattributes";
 		$txt = "";
@@ -392,20 +327,12 @@ class coopy_Coopy {
 			$io->saveContent($attr, $txt);
 		}
 		$io->writeStdout("- Done!\x0A");
-		{
-			$GLOBALS['%s']->pop();
-			return 0;
-		}
-		$GLOBALS['%s']->pop();
+		return 0;
 	}
 	public function coopyhx($io) {
-		$GLOBALS['%s']->push("coopy.Coopy::coopyhx");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$args = $io->args();
 		if($args[0] === "--test") {
-			$tmp = coopy_Coopy::randomTests();
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return coopy_Coopy::randomTests();
 		}
 		$more = true;
 		$output = null;
@@ -538,10 +465,7 @@ class coopy_Coopy {
 		if($args->length < 2) {
 			if($cmd === "version") {
 				$io->writeStdout(_hx_string_or_null(coopy_Coopy::$VERSION) . "\x0A");
-				{
-					$GLOBALS['%s']->pop();
-					return 0;
-				}
+				return 0;
 			}
 			if($cmd === "git") {
 				$io->writeStdout("You can use daff to improve git's handling of csv files, by using it as a\x0Adiff driver (for showing what has changed) and as a merge driver (for merging\x0Achanges between multiple versions).\x0A");
@@ -565,10 +489,7 @@ class coopy_Coopy {
 				$io->writeStdout("  driver = daff merge --output %A %O %A %B\x0A\x0A");
 				$io->writeStderr("Make sure you can run daff from the command-line as just \"daff\" - if not,\x0Areplace \"daff\" in the driver and command lines above with the correct way\x0Ato call it. Omit --color if your terminal does not support ANSI colors.");
 				$io->writeStderr("\x0A");
-				{
-					$GLOBALS['%s']->pop();
-					return 0;
-				}
+				return 0;
 			}
 			$io->writeStderr("daff can produce and apply tabular diffs.\x0A");
 			$io->writeStderr("Call as:\x0A");
@@ -602,10 +523,7 @@ class coopy_Coopy {
 			$io->writeStderr("     --css CSS.css: generate a suitable css file to go with the html\x0A");
 			$io->writeStderr("     --fragment:    generate just a html fragment rather than a page\x0A");
 			$io->writeStderr("     --plain:       do not use fancy utf8 characters to make arrows prettier\x0A");
-			{
-				$GLOBALS['%s']->pop();
-				return 1;
-			}
+			return 1;
 		}
 		$cmd1 = $args[0];
 		$offset = 1;
@@ -617,20 +535,13 @@ class coopy_Coopy {
 		}
 		if($cmd1 === "git") {
 			$types = $args->splice($offset, $args->length - $offset);
-			{
-				$tmp = $this->installGitDriver($io, $types);
-				$GLOBALS['%s']->pop();
-				return $tmp;
-			}
+			return $this->installGitDriver($io, $types);
 		}
 		if($git) {
 			$ct = $args->length - $offset;
 			if($ct !== 7) {
 				$io->writeStderr("Expected 7 parameters from git, but got " . _hx_string_rec($ct, "") . "\x0A");
-				{
-					$GLOBALS['%s']->pop();
-					return 1;
-				}
+				return 1;
 			}
 			$git_args = $args->splice($offset, $ct);
 			$args->splice(0, $args->length);
@@ -665,10 +576,7 @@ class coopy_Coopy {
 				$io->writeStderr("Please do not use --inplace when specifying an output.\x0A");
 			}
 			$output = $aname;
-			{
-				$GLOBALS['%s']->pop();
-				return 1;
-			}
+			return 1;
 		}
 		if($output === null) {
 			$output = "-";
@@ -725,13 +633,10 @@ class coopy_Coopy {
 			}
 		}
 		if($ok) {
-			$GLOBALS['%s']->pop();
 			return 0;
 		} else {
-			$GLOBALS['%s']->pop();
 			return 1;
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
@@ -743,25 +648,17 @@ class coopy_Coopy {
 		else
 			throw new HException('Unable to call <'.$m.'>');
 	}
-	static $VERSION = "1.1.11";
+	static $VERSION = "1.1.12";
 	static function compareTables($local, $remote, $flags = null) {
-		$GLOBALS['%s']->push("coopy.Coopy::compareTables");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$ct = new coopy_CompareTable();
 		$comp = new coopy_TableComparisonState();
 		$comp->a = $local;
 		$comp->b = $remote;
 		$comp->compare_flags = $flags;
 		$ct->attach($comp);
-		{
-			$GLOBALS['%s']->pop();
-			return $ct;
-		}
-		$GLOBALS['%s']->pop();
+		return $ct;
 	}
 	static function compareTables3($parent, $local, $remote, $flags = null) {
-		$GLOBALS['%s']->push("coopy.Coopy::compareTables3");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$ct = new coopy_CompareTable();
 		$comp = new coopy_TableComparisonState();
 		$comp->p = $parent;
@@ -769,15 +666,9 @@ class coopy_Coopy {
 		$comp->b = $remote;
 		$comp->compare_flags = $flags;
 		$ct->attach($comp);
-		{
-			$GLOBALS['%s']->pop();
-			return $ct;
-		}
-		$GLOBALS['%s']->pop();
+		return $ct;
 	}
 	static function randomTests() {
-		$GLOBALS['%s']->push("coopy.Coopy::randomTests");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$st = new coopy_SimpleTable(15, 6);
 		$tab = $st;
 		haxe_Log::trace("table size is " . _hx_string_rec($tab->get_width(), "") . "x" . _hx_string_rec($tab->get_height(), ""), _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 53, "className" => "coopy.Coopy", "methodName" => "randomTests")));
@@ -830,29 +721,15 @@ class coopy_Coopy {
 		$hp = new coopy_HighlightPatch(null, null);
 		$csv = new coopy_Csv(null);
 		$tm = new coopy_TableModifier(null);
-		{
-			$GLOBALS['%s']->pop();
-			return 0;
-		}
-		$GLOBALS['%s']->pop();
+		return 0;
 	}
 	static function cellFor($x) {
-		$GLOBALS['%s']->push("coopy.Coopy::cellFor");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($x === null) {
-			$GLOBALS['%s']->pop();
 			return null;
 		}
-		{
-			$tmp = new coopy_SimpleCell($x);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return new coopy_SimpleCell($x);
 	}
 	static function jsonToTable($json) {
-		$GLOBALS['%s']->push("coopy.Coopy::jsonToTable");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$output = null;
 		{
 			$_g = 0;
@@ -919,27 +796,14 @@ class coopy_Coopy {
 		if($output !== null) {
 			$output->trimBlank();
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $output;
-		}
-		$GLOBALS['%s']->pop();
+		return $output;
 	}
 	static function main() {
-		$GLOBALS['%s']->push("coopy.Coopy::main");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$io = new coopy_TableIO();
 		$coopy1 = new coopy_Coopy();
-		{
-			$tmp = $coopy1->coopyhx($io);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $coopy1->coopyhx($io);
 	}
 	static function show($t) {
-		$GLOBALS['%s']->push("coopy.Coopy::show");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$w = $t->get_width();
 		$h = $t->get_height();
 		$txt = "";
@@ -962,11 +826,8 @@ class coopy_Coopy {
 			}
 		}
 		haxe_Log::trace($txt, _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 705, "className" => "coopy.Coopy", "methodName" => "show")));
-		$GLOBALS['%s']->pop();
 	}
 	static function jsonify($t) {
-		$GLOBALS['%s']->push("coopy.Coopy::jsonify");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$workbook = new haxe_ds_StringMap();
 		$sheet = new _hx_array(array());
 		$w = $t->get_width();
@@ -996,11 +857,7 @@ class coopy_Coopy {
 			}
 		}
 		$workbook->set("sheet", $sheet);
-		{
-			$GLOBALS['%s']->pop();
-			return $workbook;
-		}
-		$GLOBALS['%s']->pop();
+		return $workbook;
 	}
 	function __toString() { return 'coopy.Coopy'; }
 }

@@ -3,8 +3,6 @@
 class coopy_CompareFlags {
 	public function __construct() {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.CompareFlags::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->ordered = true;
 		$this->show_unchanged = false;
 		$this->unchanged_context = 1;
@@ -15,7 +13,6 @@ class coopy_CompareFlags {
 		$this->always_show_header = true;
 		$this->acts = null;
 		$this->ids = null;
-		$GLOBALS['%s']->pop();
 	}}
 	public $ordered;
 	public $show_unchanged;
@@ -28,46 +25,22 @@ class coopy_CompareFlags {
 	public $acts;
 	public $ids;
 	public function allowUpdate() {
-		$GLOBALS['%s']->push("coopy.CompareFlags::allowUpdate");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->acts === null) {
-			$GLOBALS['%s']->pop();
 			return true;
 		}
-		{
-			$tmp = $this->acts->exists("update");
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->acts->exists("update");
 	}
 	public function allowInsert() {
-		$GLOBALS['%s']->push("coopy.CompareFlags::allowInsert");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->acts === null) {
-			$GLOBALS['%s']->pop();
 			return true;
 		}
-		{
-			$tmp = $this->acts->exists("insert");
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->acts->exists("insert");
 	}
 	public function allowDelete() {
-		$GLOBALS['%s']->push("coopy.CompareFlags::allowDelete");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->acts === null) {
-			$GLOBALS['%s']->pop();
 			return true;
 		}
-		{
-			$tmp = $this->acts->exists("delete");
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->acts->exists("delete");
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

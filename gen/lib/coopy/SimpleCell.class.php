@@ -3,21 +3,11 @@
 class coopy_SimpleCell {
 	public function __construct($x) {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.SimpleCell::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->datum = $x;
-		$GLOBALS['%s']->pop();
 	}}
 	public $datum;
 	public function toString() {
-		$GLOBALS['%s']->push("coopy.SimpleCell::toString");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->datum;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->datum;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

@@ -1,14 +1,8 @@
 <?php
 
 class coopy_TerminalDiffRender {
-	public function __construct() { if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.TerminalDiffRender::new");
-		$__hx__spos = $GLOBALS['%s']->length;
-		$GLOBALS['%s']->pop();
-	}}
-	public function render($t) {
-		$GLOBALS['%s']->push("coopy.TerminalDiffRender::render");
-		$__hx__spos = $GLOBALS['%s']->length;
+	public function __construct() {}
+	public function render($t) { if(!php_Boot::$skip_constructor) {
 		$csv = new coopy_Csv(null);
 		$result = "";
 		$w = $t->get_width();
@@ -72,11 +66,7 @@ class coopy_TerminalDiffRender {
 				unset($y);
 			}
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $txt;
-		}
-		$GLOBALS['%s']->pop();
-	}
+		return $txt;
+	}}
 	function __toString() { return 'coopy.TerminalDiffRender'; }
 }

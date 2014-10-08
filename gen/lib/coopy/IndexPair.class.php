@@ -3,33 +3,22 @@
 class coopy_IndexPair {
 	public function __construct() {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.IndexPair::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->ia = new coopy_Index();
 		$this->ib = new coopy_Index();
 		$this->quality = 0;
-		$GLOBALS['%s']->pop();
 	}}
 	public $ia;
 	public $ib;
 	public $quality;
 	public function addColumn($i) {
-		$GLOBALS['%s']->push("coopy.IndexPair::addColumn");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->ia->addColumn($i);
 		$this->ib->addColumn($i);
-		$GLOBALS['%s']->pop();
 	}
 	public function addColumns($ca, $cb) {
-		$GLOBALS['%s']->push("coopy.IndexPair::addColumns");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->ia->addColumn($ca);
 		$this->ib->addColumn($cb);
-		$GLOBALS['%s']->pop();
 	}
 	public function indexTables($a, $b) {
-		$GLOBALS['%s']->push("coopy.IndexPair::indexTables");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->ia->indexTable($a);
 		$this->ib->indexTable($b);
 		$good = 0;
@@ -51,11 +40,8 @@ class coopy_IndexPair {
 			unset($spot_b,$spot_a,$item_b,$item_a);
 		}
 		$this->quality = $good / Math::max(1.0, $a->get_height());
-		$GLOBALS['%s']->pop();
 	}
 	public function queryByKey($ka) {
-		$GLOBALS['%s']->push("coopy.IndexPair::queryByKey");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$result = new coopy_CrossMatch();
 		$result->item_a = $this->ia->items->get($ka);
 		$result->item_b = $this->ib->items->get($ka);
@@ -68,59 +54,25 @@ class coopy_IndexPair {
 				$result->spot_b = $result->item_b->lst->length;
 			}
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $result;
-		}
-		$GLOBALS['%s']->pop();
+		return $result;
 	}
 	public function queryByContent($row) {
-		$GLOBALS['%s']->push("coopy.IndexPair::queryByContent");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$result = new coopy_CrossMatch();
 		$ka = $this->ia->toKeyByContent($row);
-		{
-			$tmp = $this->queryByKey($ka);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->queryByKey($ka);
 	}
 	public function queryLocal($row) {
-		$GLOBALS['%s']->push("coopy.IndexPair::queryLocal");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$ka = $this->ia->toKey($this->ia->getTable(), $row);
-		{
-			$tmp = $this->queryByKey($ka);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->queryByKey($ka);
 	}
 	public function getTopFreq() {
-		$GLOBALS['%s']->push("coopy.IndexPair::getTopFreq");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->ib->top_freq > $this->ia->top_freq) {
-			$tmp = $this->ib->top_freq;
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return $this->ib->top_freq;
 		}
-		{
-			$tmp = $this->ia->top_freq;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->ia->top_freq;
 	}
 	public function getQuality() {
-		$GLOBALS['%s']->push("coopy.IndexPair::getQuality");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->quality;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->quality;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

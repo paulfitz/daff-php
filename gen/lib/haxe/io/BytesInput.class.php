@@ -1,11 +1,6 @@
 <?php
 
-class coopy_CrossMatch {
-	public function __construct() {}
-	public $spot_a;
-	public $spot_b;
-	public $item_a;
-	public $item_b;
+class haxe_io_BytesInput extends haxe_io_Input {
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);
@@ -16,5 +11,5 @@ class coopy_CrossMatch {
 		else
 			throw new HException('Unable to call <'.$m.'>');
 	}
-	function __toString() { return 'coopy.CrossMatch'; }
+	function __toString() { return 'haxe.io.BytesInput'; }
 }

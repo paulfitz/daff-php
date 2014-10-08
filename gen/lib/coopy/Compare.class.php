@@ -1,14 +1,8 @@
 <?php
 
 class coopy_Compare {
-	public function __construct() { if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.Compare::new");
-		$__hx__spos = $GLOBALS['%s']->length;
-		$GLOBALS['%s']->pop();
-	}}
-	public function compare($parent, $local, $remote, $report) {
-		$GLOBALS['%s']->push("coopy.Compare::compare");
-		$__hx__spos = $GLOBALS['%s']->length;
+	public function __construct() {}
+	public function compare($parent, $local, $remote, $report) { if(!php_Boot::$skip_constructor) {
 		$ws = new coopy_Workspace();
 		$ws->parent = $parent;
 		$ws->local = $local;
@@ -17,46 +11,24 @@ class coopy_Compare {
 		$report->clear();
 		if($parent === null || $local === null || $remote === null) {
 			$report->changes->push(new coopy_Change("only 3-way comparison allowed right now"));
-			{
-				$GLOBALS['%s']->pop();
-				return false;
-			}
+			return false;
 		}
 		if($parent->hasStructure() || $local->hasStructure() || $remote->hasStructure()) {
-			$tmp = $this->compareStructured($ws);
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return $this->compareStructured($ws);
 		}
-		{
-			$tmp = $this->comparePrimitive($ws);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
-	}
+		return $this->comparePrimitive($ws);
+	}}
 	public function compareStructured($ws) {
-		$GLOBALS['%s']->push("coopy.Compare::compareStructured");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$ws->tparent = $ws->parent->getTable();
 		$ws->tlocal = $ws->local->getTable();
 		$ws->tremote = $ws->remote->getTable();
 		if($ws->tparent === null || $ws->tlocal === null || $ws->tremote === null) {
 			$ws->report->changes->push(new coopy_Change("structured comparisons that include non-tables are not available yet"));
-			{
-				$GLOBALS['%s']->pop();
-				return false;
-			}
+			return false;
 		}
-		{
-			$tmp = $this->compareTable($ws);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->compareTable($ws);
 	}
 	public function compareTable($ws) {
-		$GLOBALS['%s']->push("coopy.Compare::compareTable");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$ws->p2l = new coopy_TableComparisonState();
 		$ws->p2r = new coopy_TableComparisonState();
 		$ws->p2l->a = $ws->tparent;
@@ -94,15 +66,9 @@ class coopy_Compare {
 		if((is_object($_t = $c->mode) && !($_t instanceof Enum) ? $_t !== coopy_ChangeType::$NO_CHANGE : $_t != coopy_ChangeType::$NO_CHANGE)) {
 			$ws->report->changes->push($c);
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	public function comparePrimitive($ws) {
-		$GLOBALS['%s']->push("coopy.Compare::comparePrimitive");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$sparent = $ws->parent->toString();
 		$slocal = $ws->local->toString();
 		$sremote = $ws->remote->toString();
@@ -130,11 +96,7 @@ class coopy_Compare {
 		if((is_object($_t = $c->mode) && !($_t instanceof Enum) ? $_t !== coopy_ChangeType::$NO_CHANGE : $_t != coopy_ChangeType::$NO_CHANGE)) {
 			$ws->report->changes->push($c);
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	function __toString() { return 'coopy.Compare'; }
 }

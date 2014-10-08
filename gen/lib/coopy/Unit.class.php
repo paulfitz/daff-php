@@ -3,8 +3,6 @@
 class coopy_Unit {
 	public function __construct($l = null, $r = null, $p = null) {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.Unit::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($p === null) {
 			$p = -2;
 		}
@@ -17,43 +15,24 @@ class coopy_Unit {
 		$this->l = $l;
 		$this->r = $r;
 		$this->p = $p;
-		$GLOBALS['%s']->pop();
 	}}
 	public $l;
 	public $r;
 	public $p;
 	public function lp() {
-		$GLOBALS['%s']->push("coopy.Unit::lp");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->p === -2) {
-			$tmp = $this->l;
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return $this->l;
 		} else {
-			$tmp = $this->p;
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return $this->p;
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function toString() {
-		$GLOBALS['%s']->push("coopy.Unit::toString");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->p >= -1) {
-			$tmp = _hx_string_or_null(coopy_Unit::describe($this->p)) . "|" . _hx_string_or_null(coopy_Unit::describe($this->l)) . ":" . _hx_string_or_null(coopy_Unit::describe($this->r));
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return _hx_string_or_null(coopy_Unit::describe($this->p)) . "|" . _hx_string_or_null(coopy_Unit::describe($this->l)) . ":" . _hx_string_or_null(coopy_Unit::describe($this->r));
 		}
-		{
-			$tmp = _hx_string_or_null(coopy_Unit::describe($this->l)) . ":" . _hx_string_or_null(coopy_Unit::describe($this->r));
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return _hx_string_or_null(coopy_Unit::describe($this->l)) . ":" . _hx_string_or_null(coopy_Unit::describe($this->r));
 	}
 	public function fromString($txt) {
-		$GLOBALS['%s']->push("coopy.Unit::fromString");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$txt .= "]";
 		$at = 0;
 		{
@@ -79,10 +58,7 @@ class coopy_Unit {
 							} else {
 								if($ch === 93) {
 									$this->r = $at;
-									{
-										$GLOBALS['%s']->pop();
-										return true;
-									}
+									return true;
 								}
 							}
 						}
@@ -91,11 +67,7 @@ class coopy_Unit {
 				unset($i,$ch);
 			}
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return false;
-		}
-		$GLOBALS['%s']->pop();
+		return false;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
@@ -108,17 +80,11 @@ class coopy_Unit {
 			throw new HException('Unable to call <'.$m.'>');
 	}
 	static function describe($i) {
-		$GLOBALS['%s']->push("coopy.Unit::describe");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($i >= 0) {
-			$tmp = "" . _hx_string_rec($i, "");
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return "" . _hx_string_rec($i, "");
 		} else {
-			$GLOBALS['%s']->pop();
 			return "-";
 		}
-		$GLOBALS['%s']->pop();
 	}
 	function __toString() { return $this->toString(); }
 }

@@ -1,14 +1,8 @@
 <?php
 
 class coopy_Mover {
-	public function __construct() { if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.Mover::new");
-		$__hx__spos = $GLOBALS['%s']->length;
-		$GLOBALS['%s']->pop();
-	}}
-	static function moveUnits($units) {
-		$GLOBALS['%s']->push("coopy.Mover::moveUnits");
-		$__hx__spos = $GLOBALS['%s']->length;
+	public function __construct() {}
+	static function moveUnits($units) { if(!php_Boot::$skip_constructor) {
 		$isrc = new _hx_array(array());
 		$idest = new _hx_array(array());
 		$len = $units->length;
@@ -65,16 +59,9 @@ class coopy_Mover {
 				unset($i2);
 			}
 		}
-		{
-			$tmp = coopy_Mover::moveWithoutExtras($isrc, $idest);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
-	}
+		return coopy_Mover::moveWithoutExtras($isrc, $idest);
+	}}
 	static function moveWithExtras($isrc, $idest) {
-		$GLOBALS['%s']->push("coopy.Mover::moveWithExtras");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$len = $isrc->length;
 		$len2 = $idest->length;
 		$in_src = new haxe_ds_IntMap();
@@ -126,24 +113,14 @@ class coopy_Mover {
 				unset($i3);
 			}
 		}
-		{
-			$tmp = coopy_Mover::moveWithoutExtras($src, $dest);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return coopy_Mover::moveWithoutExtras($src, $dest);
 	}
 	static function moveWithoutExtras($src, $dest) {
-		$GLOBALS['%s']->push("coopy.Mover::moveWithoutExtras");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($src->length !== $dest->length) {
-			$GLOBALS['%s']->pop();
 			return null;
 		}
 		if($src->length <= 1) {
-			$tmp = (new _hx_array(array()));
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return (new _hx_array(array()));
 		}
 		$len = $src->length;
 		$in_src = new haxe_ds_IntMap();
@@ -223,23 +200,12 @@ class coopy_Mover {
 			}
 			unset($ref_src_loc,$ref_dest_loc,$i1,$blk1,$blen);
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $moved;
-		}
-		$GLOBALS['%s']->pop();
+		return $moved;
 	}
 	function __toString() { return 'coopy.Mover'; }
 }
 function coopy_Mover_0(&$blk, &$blk_dest_loc, &$blk_len, &$blk_src_loc, &$blks, &$ct, &$dest, &$in_cursor, &$in_src, &$len, &$next, &$out_cursor, &$src, &$v, $a, $b) {
 	{
-		$GLOBALS['%s']->push("coopy.Mover::moveWithoutExtras@105");
-		$__hx__spos2 = $GLOBALS['%s']->length;
-		{
-			$tmp = $blk_len->get($b) - $blk_len->get($a);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $blk_len->get($b) - $blk_len->get($a);
 	}
 }

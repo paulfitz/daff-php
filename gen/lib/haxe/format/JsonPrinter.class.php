@@ -3,14 +3,11 @@
 class haxe_format_JsonPrinter {
 	public function __construct($replacer, $space) {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("haxe.format.JsonPrinter::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->replacer = $replacer;
 		$this->indent = $space;
 		$this->pretty = $space !== null;
 		$this->nind = 0;
 		$this->buf = new StringBuf();
-		$GLOBALS['%s']->pop();
 	}}
 	public $buf;
 	public $replacer;
@@ -18,8 +15,6 @@ class haxe_format_JsonPrinter {
 	public $pretty;
 	public $nind;
 	public function write($k, $v) {
-		$GLOBALS['%s']->push("haxe.format.JsonPrinter::write");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->replacer !== null) {
 			$v = $this->replacer($k, $v);
 		}
@@ -49,7 +44,7 @@ class haxe_format_JsonPrinter {
 				$this->buf->add("\"<fun>\"");
 			}break;
 			case 6:{
-				$c = $_g->params[0];
+				$c = _hx_deref($_g)->params[0];
 				if((is_object($_t = $c) && !($_t instanceof Enum) ? $_t === _hx_qtype("String") : $_t == _hx_qtype("String"))) {
 					$this->quote($v);
 				} else {
@@ -155,11 +150,8 @@ class haxe_format_JsonPrinter {
 			}break;
 			}
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function fieldsString($v, $fields) {
-		$GLOBALS['%s']->push("haxe.format.JsonPrinter::fieldsString");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->buf->b .= "{";
 		$len = $fields->length;
 		$last = $len - 1;
@@ -228,17 +220,11 @@ class haxe_format_JsonPrinter {
 			}
 		}
 		$this->buf->b .= "}";
-		$GLOBALS['%s']->pop();
 	}
 	public function quote($s) {
-		$GLOBALS['%s']->push("haxe.format.JsonPrinter::quote");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if(strlen($s) !== haxe_Utf8::length($s)) {
 			$this->quoteUtf8($s);
-			{
-				$GLOBALS['%s']->pop();
-				return;
-			}
+			return;
 		}
 		$this->buf->b .= "\"";
 		$i = 0;
@@ -281,17 +267,13 @@ class haxe_format_JsonPrinter {
 			unset($c);
 		}
 		$this->buf->b .= "\"";
-		$GLOBALS['%s']->pop();
 	}
 	public function quoteUtf8($s) {
-		$GLOBALS['%s']->push("haxe.format.JsonPrinter::quoteUtf8");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$u = new haxe_Utf8(null);
 		haxe_Utf8::iter($s, array(new _hx_lambda(array(&$s, &$u), "haxe_format_JsonPrinter_0"), 'execute'));
 		$this->buf->add("\"");
 		$this->buf->add($u->toString());
 		$this->buf->add("\"");
-		$GLOBALS['%s']->pop();
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
@@ -304,23 +286,14 @@ class haxe_format_JsonPrinter {
 			throw new HException('Unable to call <'.$m.'>');
 	}
 	static function hprint($o, $replacer = null, $space = null) {
-		$GLOBALS['%s']->push("haxe.format.JsonPrinter::print");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$printer = new haxe_format_JsonPrinter($replacer, $space);
 		$printer->write("", $o);
-		{
-			$tmp = $printer->buf->b;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $printer->buf->b;
 	}
 	function __toString() { return 'haxe.format.JsonPrinter'; }
 }
 function haxe_format_JsonPrinter_0(&$s, &$u, $c) {
 	{
-		$GLOBALS['%s']->push("haxe.format.JsonPrinter::quoteUtf8@188");
-		$__hx__spos2 = $GLOBALS['%s']->length;
 		switch($c) {
 		case 92:case 34:{
 			$u->addChar(92);
@@ -350,6 +323,5 @@ function haxe_format_JsonPrinter_0(&$s, &$u, $c) {
 			$u->addChar($c);
 		}break;
 		}
-		$GLOBALS['%s']->pop();
 	}
 }

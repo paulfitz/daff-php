@@ -9,8 +9,6 @@ class haxe_Log {
 haxe_Log::$trace = array(new _hx_lambda(array(), "haxe_Log_0"), 'execute');
 function haxe_Log_0($v, $infos) {
 	{
-		$GLOBALS['%s']->push("haxe.Log::trace@45");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($infos !== null && $infos->customParams !== null) {
 			$extra = "";
 			{
@@ -27,6 +25,5 @@ function haxe_Log_0($v, $infos) {
 		} else {
 			_hx_trace($v, $infos);
 		}
-		$GLOBALS['%s']->pop();
 	}
 }

@@ -3,8 +3,6 @@
 class coopy_Alignment {
 	public function __construct() {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.Alignment::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->map_a2b = new haxe_ds_IntMap();
 		$this->map_b2a = new haxe_ds_IntMap();
 		$this->ha = $this->hb = 0;
@@ -14,7 +12,6 @@ class coopy_Alignment {
 		$this->order_cache_has_reference = false;
 		$this->ia = 0;
 		$this->ib = 0;
-		$GLOBALS['%s']->pop();
 	}}
 	public $map_a2b;
 	public $map_b2a;
@@ -31,161 +28,63 @@ class coopy_Alignment {
 	public $reference;
 	public $meta;
 	public function range($ha, $hb) {
-		$GLOBALS['%s']->push("coopy.Alignment::range");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->ha = $ha;
 		$this->hb = $hb;
-		$GLOBALS['%s']->pop();
 	}
 	public function tables($ta, $tb) {
-		$GLOBALS['%s']->push("coopy.Alignment::tables");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->ta = $ta;
 		$this->tb = $tb;
-		$GLOBALS['%s']->pop();
 	}
 	public function headers($ia, $ib) {
-		$GLOBALS['%s']->push("coopy.Alignment::headers");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->ia = $ia;
 		$this->ib = $ib;
-		$GLOBALS['%s']->pop();
 	}
-	public function setRowlike($flag) {
-		$GLOBALS['%s']->push("coopy.Alignment::setRowlike");
-		$__hx__spos = $GLOBALS['%s']->length;
-		$GLOBALS['%s']->pop();
-	}
+	public function setRowlike($flag) {}
 	public function link($a, $b) {
-		$GLOBALS['%s']->push("coopy.Alignment::link");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->map_a2b->set($a, $b);
 		$this->map_b2a->set($b, $a);
 		$this->map_count++;
-		$GLOBALS['%s']->pop();
 	}
 	public function addIndexColumns($unit) {
-		$GLOBALS['%s']->push("coopy.Alignment::addIndexColumns");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->index_columns === null) {
 			$this->index_columns = new _hx_array(array());
 		}
 		$this->index_columns->push($unit);
-		$GLOBALS['%s']->pop();
 	}
 	public function getIndexColumns() {
-		$GLOBALS['%s']->push("coopy.Alignment::getIndexColumns");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->index_columns;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->index_columns;
 	}
 	public function a2b($a) {
-		$GLOBALS['%s']->push("coopy.Alignment::a2b");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->map_a2b->get($a);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->map_a2b->get($a);
 	}
 	public function b2a($b) {
-		$GLOBALS['%s']->push("coopy.Alignment::b2a");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->map_b2a->get($b);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->map_b2a->get($b);
 	}
 	public function count() {
-		$GLOBALS['%s']->push("coopy.Alignment::count");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->map_count;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->map_count;
 	}
 	public function toString() {
-		$GLOBALS['%s']->push("coopy.Alignment::toString");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = "" . _hx_string_or_null($this->map_a2b->toString());
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return "" . _hx_string_or_null($this->map_a2b->toString());
 	}
 	public function toOrderPruned($rowlike) {
-		$GLOBALS['%s']->push("coopy.Alignment::toOrderPruned");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->toOrderCached(true, $rowlike);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->toOrderCached(true, $rowlike);
 	}
 	public function toOrder() {
-		$GLOBALS['%s']->push("coopy.Alignment::toOrder");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->toOrderCached(false, false);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->toOrderCached(false, false);
 	}
 	public function getSource() {
-		$GLOBALS['%s']->push("coopy.Alignment::getSource");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->ta;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->ta;
 	}
 	public function getTarget() {
-		$GLOBALS['%s']->push("coopy.Alignment::getTarget");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->tb;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->tb;
 	}
 	public function getSourceHeader() {
-		$GLOBALS['%s']->push("coopy.Alignment::getSourceHeader");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->ia;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->ia;
 	}
 	public function getTargetHeader() {
-		$GLOBALS['%s']->push("coopy.Alignment::getTargetHeader");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->ib;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->ib;
 	}
 	public function toOrderCached($prune, $rowlike) {
-		$GLOBALS['%s']->push("coopy.Alignment::toOrderCached");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->order_cache !== null) {
 			if($this->reference !== null) {
 				if(!$this->order_cache_has_reference) {
@@ -199,26 +98,17 @@ class coopy_Alignment {
 		if($this->reference !== null) {
 			$this->order_cache_has_reference = true;
 		}
-		{
-			$tmp = $this->order_cache;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->order_cache;
 	}
 	public function pruneOrder($o, $ref, $rowlike) {
-		$GLOBALS['%s']->push("coopy.Alignment::pruneOrder");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$tl = $ref->tb;
 		$tr = $this->tb;
 		if($rowlike) {
 			if($tl->get_width() !== $tr->get_width()) {
-				$GLOBALS['%s']->pop();
 				return;
 			}
 		} else {
 			if($tl->get_height() !== $tr->get_height()) {
-				$GLOBALS['%s']->pop();
 				return;
 			}
 		}
@@ -318,11 +208,8 @@ class coopy_Alignment {
 				}
 			}
 		}
-		$GLOBALS['%s']->pop();
 	}
 	public function toOrder3($prune, $rowlike) {
-		$GLOBALS['%s']->push("coopy.Alignment::toOrder3");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$ref = $this->reference;
 		if($ref === null) {
 			$ref = new coopy_Alignment();
@@ -513,11 +400,7 @@ class coopy_Alignment {
 		if($prune) {
 			$this->pruneOrder($order, $ref, $rowlike);
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $order;
-		}
-		$GLOBALS['%s']->pop();
+		return $order;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
@@ -533,13 +416,6 @@ class coopy_Alignment {
 }
 function coopy_Alignment_0(&$ct, &$eliminate, &$left_locs, &$left_units, &$o, &$ref, &$right_locs, &$right_units, &$rowlike, &$tl, &$tr, &$units, $a, $b) {
 	{
-		$GLOBALS['%s']->push("coopy.Alignment::pruneOrder@195");
-		$__hx__spos2 = $GLOBALS['%s']->length;
-		{
-			$tmp = $a - $b;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $a - $b;
 	}
 }

@@ -3,8 +3,6 @@
 class coopy_Csv {
 	public function __construct($delim = null) {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.Csv::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($delim === null) {
 			$delim = ",";
 		}
@@ -15,15 +13,12 @@ class coopy_Csv {
 		} else {
 			$this->delim = $delim;
 		}
-		$GLOBALS['%s']->pop();
 	}}
 	public $cursor;
 	public $row_ended;
 	public $has_structure;
 	public $delim;
 	public function renderTable($t) {
-		$GLOBALS['%s']->push("coopy.Csv::renderTable");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$result = "";
 		$w = $t->get_width();
 		$h = $t->get_height();
@@ -49,17 +44,10 @@ class coopy_Csv {
 				unset($y);
 			}
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $txt;
-		}
-		$GLOBALS['%s']->pop();
+		return $txt;
 	}
 	public function renderCell($v, $d) {
-		$GLOBALS['%s']->push("coopy.Csv::renderCell");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($d === null) {
-			$GLOBALS['%s']->pop();
 			return "NULL";
 		}
 		$str = $v->toString($d);
@@ -106,15 +94,9 @@ class coopy_Csv {
 		if($need_quote) {
 			$result .= "\"";
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $result;
-		}
-		$GLOBALS['%s']->pop();
+		return $result;
 	}
 	public function parseTable($txt) {
-		$GLOBALS['%s']->push("coopy.Csv::parseTable");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->cursor = 0;
 		$this->row_ended = false;
 		$this->has_structure = true;
@@ -130,17 +112,10 @@ class coopy_Csv {
 			$this->cursor++;
 			unset($cell);
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $result;
-		}
-		$GLOBALS['%s']->pop();
+		return $result;
 	}
 	public function parseCell($txt) {
-		$GLOBALS['%s']->push("coopy.Csv::parseCell");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($txt === null) {
-			$GLOBALS['%s']->pop();
 			return null;
 		}
 		$this->row_ended = false;
@@ -207,36 +182,22 @@ class coopy_Csv {
 		$this->cursor = $last_processed;
 		if($quote === 0) {
 			if($result === "NULL") {
-				$GLOBALS['%s']->pop();
 				return null;
 			}
 			if($first_non_underscore > $start) {
 				$del = $first_non_underscore - $start;
 				if(_hx_substr($result, $del, null) === "NULL") {
-					$tmp = _hx_substr($result, 1, null);
-					$GLOBALS['%s']->pop();
-					return $tmp;
+					return _hx_substr($result, 1, null);
 				}
 			}
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $result;
-		}
-		$GLOBALS['%s']->pop();
+		return $result;
 	}
 	public function parseSingleCell($txt) {
-		$GLOBALS['%s']->push("coopy.Csv::parseSingleCell");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->cursor = 0;
 		$this->row_ended = false;
 		$this->has_structure = false;
-		{
-			$tmp = $this->parseCell($txt);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->parseCell($txt);
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

@@ -1,69 +1,37 @@
 <?php
 
 class coopy_CompareTable {
-	public function __construct() {
-		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.CompareTable::new");
-		$__hx__spos = $GLOBALS['%s']->length;
-		$GLOBALS['%s']->pop();
-	}}
+	public function __construct() {}
 	public $comp;
 	public $indexes;
 	public function attach($comp) {
-		$GLOBALS['%s']->push("coopy.CompareTable::attach");
-		$__hx__spos = $GLOBALS['%s']->length;
+		if(!php_Boot::$skip_constructor) {
 		$this->comp = $comp;
 		$more = $this->compareCore();
 		while($more && $comp->run_to_completion) {
 			$more = $this->compareCore();
 		}
-		{
-			$tmp = !$more;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
-	}
+		return !$more;
+	}}
 	public function align() {
-		$GLOBALS['%s']->push("coopy.CompareTable::align");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$alignment = new coopy_Alignment();
 		$this->alignCore($alignment);
-		{
-			$GLOBALS['%s']->pop();
-			return $alignment;
-		}
-		$GLOBALS['%s']->pop();
+		return $alignment;
 	}
 	public function getComparisonState() {
-		$GLOBALS['%s']->push("coopy.CompareTable::getComparisonState");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->comp;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->comp;
 	}
 	public function alignCore($align) {
-		$GLOBALS['%s']->push("coopy.CompareTable::alignCore");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->comp->p === null) {
 			$this->alignCore2($align, $this->comp->a, $this->comp->b);
-			{
-				$GLOBALS['%s']->pop();
-				return;
-			}
+			return;
 		}
 		$align->reference = new coopy_Alignment();
 		$this->alignCore2($align, $this->comp->p, $this->comp->b);
 		$this->alignCore2($align->reference, $this->comp->p, $this->comp->a);
 		$align->meta->reference = $align->reference->meta;
-		$GLOBALS['%s']->pop();
 	}
 	public function alignCore2($align, $a, $b) {
-		$GLOBALS['%s']->push("coopy.CompareTable::alignCore2");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($align->meta === null) {
 			$align->meta = new coopy_Alignment();
 		}
@@ -291,11 +259,8 @@ class coopy_CompareTable {
 			}
 		}
 		$align->link(0, 0);
-		$GLOBALS['%s']->pop();
 	}
 	public function alignColumns($align, $a, $b) {
-		$GLOBALS['%s']->push("coopy.CompareTable::alignColumns");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$align->range($a->get_width(), $b->get_width());
 		$align->tables($a, $b);
 		$align->setRowlike(false);
@@ -401,7 +366,6 @@ class coopy_CompareTable {
 			}
 		}
 		if($ma_best === null) {
-			$GLOBALS['%s']->pop();
 			return;
 		}
 		if(null == $ma_best) throw new HException('null iterable');
@@ -417,11 +381,8 @@ class coopy_CompareTable {
 			unset($i11,$i01);
 		}
 		$align->headers($ra_header, $rb_header);
-		$GLOBALS['%s']->pop();
 	}
 	public function testHasSameColumns() {
-		$GLOBALS['%s']->push("coopy.CompareTable::testHasSameColumns");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$p = $this->comp->p;
 		$a = $this->comp->a;
 		$b = $this->comp->b;
@@ -431,21 +392,13 @@ class coopy_CompareTable {
 		}
 		$this->comp->has_same_columns = $eq;
 		$this->comp->has_same_columns_known = true;
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	public function hasSameColumns2($a, $b) {
-		$GLOBALS['%s']->push("coopy.CompareTable::hasSameColumns2");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($a->get_width() !== $b->get_width()) {
-			$GLOBALS['%s']->pop();
 			return false;
 		}
 		if($a->get_height() === 0 || $b->get_height() === 0) {
-			$GLOBALS['%s']->pop();
 			return true;
 		}
 		$av = $a->getCellView();
@@ -460,7 +413,6 @@ class coopy_CompareTable {
 					while($_g3 < $_g2) {
 						$j = $_g3++;
 						if($av->equals($a->getCell($i, 0), $a->getCell($j, 0))) {
-							$GLOBALS['%s']->pop();
 							return false;
 						}
 						unset($j);
@@ -468,21 +420,14 @@ class coopy_CompareTable {
 					unset($_g3,$_g2);
 				}
 				if(!$av->equals($a->getCell($i, 0), $b->getCell($i, 0))) {
-					$GLOBALS['%s']->pop();
 					return false;
 				}
 				unset($i);
 			}
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	public function testIsEqual() {
-		$GLOBALS['%s']->push("coopy.CompareTable::testIsEqual");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$p = $this->comp->p;
 		$a = $this->comp->a;
 		$b = $this->comp->b;
@@ -492,17 +437,10 @@ class coopy_CompareTable {
 		}
 		$this->comp->is_equal = $eq;
 		$this->comp->is_equal_known = true;
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	public function isEqual2($a, $b) {
-		$GLOBALS['%s']->push("coopy.CompareTable::isEqual2");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($a->get_width() !== $b->get_width() || $a->get_height() !== $b->get_height()) {
-			$GLOBALS['%s']->pop();
 			return false;
 		}
 		$av = $a->getCellView();
@@ -517,7 +455,6 @@ class coopy_CompareTable {
 					while($_g3 < $_g2) {
 						$j = $_g3++;
 						if(!$av->equals($a->getCell($j, $i), $b->getCell($j, $i))) {
-							$GLOBALS['%s']->pop();
 							return false;
 						}
 						unset($j);
@@ -527,51 +464,26 @@ class coopy_CompareTable {
 				unset($i);
 			}
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return true;
-		}
-		$GLOBALS['%s']->pop();
+		return true;
 	}
 	public function compareCore() {
-		$GLOBALS['%s']->push("coopy.CompareTable::compareCore");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($this->comp->completed) {
-			$GLOBALS['%s']->pop();
 			return false;
 		}
 		if(!$this->comp->is_equal_known) {
-			$tmp = $this->testIsEqual();
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return $this->testIsEqual();
 		}
 		if(!$this->comp->has_same_columns_known) {
-			$tmp = $this->testHasSameColumns();
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return $this->testHasSameColumns();
 		}
 		$this->comp->completed = true;
-		{
-			$GLOBALS['%s']->pop();
-			return false;
-		}
-		$GLOBALS['%s']->pop();
+		return false;
 	}
 	public function storeIndexes() {
-		$GLOBALS['%s']->push("coopy.CompareTable::storeIndexes");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->indexes = new _hx_array(array());
-		$GLOBALS['%s']->pop();
 	}
 	public function getIndexes() {
-		$GLOBALS['%s']->push("coopy.CompareTable::getIndexes");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->indexes;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->indexes;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
@@ -587,32 +499,17 @@ class coopy_CompareTable {
 }
 function coopy_CompareTable_0(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$w, $a1, $b1) {
 	{
-		$GLOBALS['%s']->push("coopy.CompareTable::alignCore2@134");
-		$__hx__spos2 = $GLOBALS['%s']->length;
 		if($a1->a[1] < $b1[1]) {
-			$GLOBALS['%s']->pop();
 			return 1;
 		}
 		if($a1->a[1] > $b1[1]) {
-			$GLOBALS['%s']->pop();
 			return -1;
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return 0;
-		}
-		$GLOBALS['%s']->pop();
+		return 0;
 	}
 }
 function coopy_CompareTable_1(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$sorter, &$w, $v) {
 	{
-		$GLOBALS['%s']->push("coopy.CompareTable::alignCore2@136");
-		$__hx__spos2 = $GLOBALS['%s']->length;
-		{
-			$tmp = $v[0];
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $v[0];
 	}
 }

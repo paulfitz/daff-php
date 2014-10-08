@@ -3,15 +3,10 @@
 class coopy_TableModifier {
 	public function __construct($t) {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.TableModifier::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->t = $t;
-		$GLOBALS['%s']->pop();
 	}}
 	public $t;
 	public function removeColumn($at) {
-		$GLOBALS['%s']->push("coopy.TableModifier::removeColumn");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$fate = (new _hx_array(array()));
 		{
 			$_g1 = 0;
@@ -30,12 +25,7 @@ class coopy_TableModifier {
 				unset($i);
 			}
 		}
-		{
-			$tmp = $this->t->insertOrDeleteColumns($fate, $this->t->get_width() - 1);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->t->insertOrDeleteColumns($fate, $this->t->get_width() - 1);
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

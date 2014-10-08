@@ -3,13 +3,10 @@
 class coopy_Merger {
 	public function __construct($parent, $local, $remote, $flags) {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.Merger::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->parent = $parent;
 		$this->local = $local;
 		$this->remote = $remote;
 		$this->flags = $flags;
-		$GLOBALS['%s']->pop();
 	}}
 	public $parent;
 	public $local;
@@ -25,8 +22,6 @@ class coopy_Merger {
 	public $column_mix_remote;
 	public $conflicts;
 	public function shuffleDimension($dim_units, $len, $fate, $cl, $cr) {
-		$GLOBALS['%s']->push("coopy.Merger::shuffleDimension");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$at = 0;
 		{
 			$_g = 0;
@@ -51,8 +46,7 @@ class coopy_Merger {
 					}
 				} else {
 					if($cunit->l >= 0) {
-						if($cunit->r < 0) {
-						} else {
+						if($cunit->r < 0) {} else {
 							{
 								$cl->set($cunit->l, $at);
 								$at;
@@ -77,35 +71,23 @@ class coopy_Merger {
 				unset($x,$idx);
 			}
 		}
-		{
-			$GLOBALS['%s']->pop();
-			return $at;
-		}
-		$GLOBALS['%s']->pop();
+		return $at;
 	}
 	public function shuffleColumns() {
-		$GLOBALS['%s']->push("coopy.Merger::shuffleColumns");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->column_mix_local = new haxe_ds_IntMap();
 		$this->column_mix_remote = new haxe_ds_IntMap();
 		$fate = new _hx_array(array());
 		$wfate = $this->shuffleDimension($this->column_units, $this->local->get_width(), $fate, $this->column_mix_local, $this->column_mix_remote);
 		$this->local->insertOrDeleteColumns($fate, $wfate);
-		$GLOBALS['%s']->pop();
 	}
 	public function shuffleRows() {
-		$GLOBALS['%s']->push("coopy.Merger::shuffleRows");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->row_mix_local = new haxe_ds_IntMap();
 		$this->row_mix_remote = new haxe_ds_IntMap();
 		$fate = new _hx_array(array());
 		$hfate = $this->shuffleDimension($this->units, $this->local->get_height(), $fate, $this->row_mix_local, $this->row_mix_remote);
 		$this->local->insertOrDeleteRows($fate, $hfate);
-		$GLOBALS['%s']->pop();
 	}
 	public function apply() {
-		$GLOBALS['%s']->push("coopy.Merger::apply");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->conflicts = 0;
 		$ct = coopy_Coopy::compareTables3($this->parent, $this->local, $this->remote, null);
 		$align = $ct->align();
@@ -199,12 +181,7 @@ class coopy_Merger {
 			}
 			unset($y2);
 		}
-		{
-			$tmp = $this->conflicts;
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->conflicts;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
@@ -217,14 +194,7 @@ class coopy_Merger {
 			throw new HException('Unable to call <'.$m.'>');
 	}
 	static function makeConflictedCell($view, $pcell, $lcell, $rcell) {
-		$GLOBALS['%s']->push("coopy.Merger::makeConflictedCell");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $view->toDatum("((( " . _hx_string_or_null($view->toString($pcell)) . " ))) " . _hx_string_or_null($view->toString($lcell)) . " /// " . _hx_string_or_null($view->toString($rcell)));
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $view->toDatum("((( " . _hx_string_or_null($view->toString($pcell)) . " ))) " . _hx_string_or_null($view->toString($lcell)) . " /// " . _hx_string_or_null($view->toString($rcell)));
 	}
 	function __toString() { return 'coopy.Merger'; }
 }

@@ -4,14 +4,7 @@ class Date {
 	public function __construct(){}
 	public $__t;
 	public function toString() {
-		$GLOBALS['%s']->push("Date::toString");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = date("Y-m-d H:i:s", $this->__t);
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return date("Y-m-d H:i:s", $this->__t);
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

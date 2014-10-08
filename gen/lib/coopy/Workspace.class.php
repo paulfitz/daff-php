@@ -1,12 +1,7 @@
 <?php
 
 class coopy_Workspace {
-	public function __construct() {
-		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.Workspace::new");
-		$__hx__spos = $GLOBALS['%s']->length;
-		$GLOBALS['%s']->pop();
-	}}
+	public function __construct() {}
 	public $parent;
 	public $local;
 	public $remote;

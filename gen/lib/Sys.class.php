@@ -3,22 +3,22 @@
 class Sys {
 	public function __construct(){}
 	static function args() {
-		$GLOBALS['%s']->push("Sys::args");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if(array_key_exists("argv", $_SERVER)) {
-			$tmp = new _hx_array(array_slice($_SERVER["argv"], 1));
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return new _hx_array(array_slice($_SERVER["argv"], 1));
 		} else {
-			$tmp = (new _hx_array(array()));
-			$GLOBALS['%s']->pop();
-			return $tmp;
+			return (new _hx_array(array()));
 		}
-		$GLOBALS['%s']->pop();
+	}
+	static function systemName() {
+		$s = php_uname("s");
+		$p = null;
+		if(($p = _hx_index_of($s, " ", null)) >= 0) {
+			return _hx_substr($s, 0, $p);
+		} else {
+			return $s;
+		}
 	}
 	static function escapeArgument($arg) {
-		$GLOBALS['%s']->push("Sys::escapeArgument");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$ok = true;
 		{
 			$_g1 = 0;
@@ -28,7 +28,7 @@ class Sys {
 				$_g2 = _hx_char_code_at($arg, $i);
 				if($_g2 !== null) {
 					switch($_g2) {
-					case 32:case 34:{
+					case 32:case 9:case 34:case 38:case 124:case 60:case 62:case 35:case 59:case 42:case 63:case 40:case 41:case 123:case 125:case 36:{
 						$ok = false;
 					}break;
 					case 0:case 13:case 10:{
@@ -40,19 +40,11 @@ class Sys {
 			}
 		}
 		if($ok) {
-			$GLOBALS['%s']->pop();
 			return $arg;
 		}
-		{
-			$tmp = "\"" . _hx_string_or_null(_hx_explode("\"", $arg)->join("\\\"")) . "\"";
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return "\"" . _hx_string_or_null(_hx_explode("\"", _hx_explode("\\", $arg)->join("\\\\"))->join("\\\"")) . "\"";
 	}
 	static function command($cmd, $args = null) {
-		$GLOBALS['%s']->push("Sys::command");
-		$__hx__spos = $GLOBALS['%s']->length;
 		if($args !== null) {
 			$cmd = Sys::escapeArgument($cmd);
 			{
@@ -65,33 +57,18 @@ class Sys {
 				}
 			}
 		}
+		if(Sys::systemName() === "Windows") {
+			$cmd = "\"" . _hx_string_or_null($cmd) . "\"";
+		}
 		$result = 0;
 		system($cmd, $result);
-		{
-			$GLOBALS['%s']->pop();
-			return $result;
-		}
-		$GLOBALS['%s']->pop();
+		return $result;
 	}
 	static function stdout() {
-		$GLOBALS['%s']->push("Sys::stdout");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = new sys_io_FileOutput(fopen("php://stdout", "w"));
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return new sys_io_FileOutput(fopen("php://stdout", "w"));
 	}
 	static function stderr() {
-		$GLOBALS['%s']->push("Sys::stderr");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = new sys_io_FileOutput(fopen("php://stderr", "w"));
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return new sys_io_FileOutput(fopen("php://stderr", "w"));
 	}
 	function __toString() { return 'Sys'; }
 }

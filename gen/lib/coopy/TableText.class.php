@@ -3,23 +3,13 @@
 class coopy_TableText {
 	public function __construct($rows) {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.TableText::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->rows = $rows;
 		$this->view = $rows->getCellView();
-		$GLOBALS['%s']->pop();
 	}}
 	public $rows;
 	public $view;
 	public function getCellText($x, $y) {
-		$GLOBALS['%s']->push("coopy.TableText::getCellText");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = $this->view->toString($this->rows->getCell($x, $y));
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return $this->view->toString($this->rows->getCell($x, $y));
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

@@ -3,8 +3,6 @@
 class coopy_HighlightPatchUnit {
 	public function __construct() {
 		if(!php_Boot::$skip_constructor) {
-		$GLOBALS['%s']->push("coopy.HighlightPatchUnit::new");
-		$__hx__spos = $GLOBALS['%s']->length;
 		$this->add = false;
 		$this->rem = false;
 		$this->update = false;
@@ -15,7 +13,6 @@ class coopy_HighlightPatchUnit {
 		$this->destRow = -1;
 		$this->patchRow = -1;
 		$this->code = "";
-		$GLOBALS['%s']->pop();
 	}}
 	public $add;
 	public $rem;
@@ -28,14 +25,7 @@ class coopy_HighlightPatchUnit {
 	public $destRow;
 	public $patchRow;
 	public function toString() {
-		$GLOBALS['%s']->push("coopy.HighlightPatchUnit::toString");
-		$__hx__spos = $GLOBALS['%s']->length;
-		{
-			$tmp = _hx_string_or_null($this->code) . " patchRow " . _hx_string_rec($this->patchRow, "") . " sourceRows " . _hx_string_rec($this->sourcePrevRow, "") . "," . _hx_string_rec($this->sourceRow, "") . "," . _hx_string_rec($this->sourceNextRow, "") . " destRow " . _hx_string_rec($this->destRow, "");
-			$GLOBALS['%s']->pop();
-			return $tmp;
-		}
-		$GLOBALS['%s']->pop();
+		return _hx_string_or_null($this->code) . " patchRow " . _hx_string_rec($this->patchRow, "") . " sourceRows " . _hx_string_rec($this->sourcePrevRow, "") . "," . _hx_string_rec($this->sourceRow, "") . "," . _hx_string_rec($this->sourceNextRow, "") . " destRow " . _hx_string_rec($this->destRow, "");
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
