@@ -65,6 +65,12 @@ class coopy_IndexPair {
 		$ka = $this->ia->toKey($this->ia->getTable(), $row);
 		return $this->queryByKey($ka);
 	}
+	public function localKey($row) {
+		return $this->ia->toKey($this->ia->getTable(), $row);
+	}
+	public function remoteKey($row) {
+		return $this->ib->toKey($this->ib->getTable(), $row);
+	}
 	public function getTopFreq() {
 		if($this->ib->top_freq > $this->ia->top_freq) {
 			return $this->ib->top_freq;

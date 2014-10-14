@@ -209,7 +209,7 @@ class coopy_TableDiff {
 		$output->clear();
 		$row_map = new haxe_ds_IntMap();
 		$col_map = new haxe_ds_IntMap();
-		$order = $this->align->toOrderPruned(true);
+		$order = $this->align->toOrder();
 		$units = $order->getList();
 		$has_parent = $this->align->reference !== null;
 		$a = null;
@@ -278,7 +278,7 @@ class coopy_TableDiff {
 				}
 			}
 		}
-		$column_order = $this->align->meta->toOrderPruned(false);
+		$column_order = $this->align->meta->toOrder();
 		$column_units = $column_order->getList();
 		$show_rc_numbers = false;
 		$row_moves = null;
