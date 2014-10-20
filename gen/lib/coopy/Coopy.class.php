@@ -443,6 +443,24 @@ class coopy_Coopy {
 																		$flags->ids->push($args[$i + 1]);
 																		$args->splice($i, 2);
 																		break;
+																	} else {
+																		if($tag === "--ignore") {
+																			$more = true;
+																			if($flags->columns_to_ignore === null) {
+																				$flags->columns_to_ignore = new _hx_array(array());
+																			}
+																			$flags->columns_to_ignore->push($args[$i + 1]);
+																			$args->splice($i, 2);
+																			break;
+																		} else {
+																			if($tag === "--index") {
+																				$more = true;
+																				$flags->always_show_order = true;
+																				$flags->never_show_order = false;
+																				$args->splice($i, 1);
+																				break;
+																			}
+																		}
 																	}
 																}
 															}
@@ -509,6 +527,7 @@ class coopy_Coopy {
 			$io->writeStderr("If you need more control, here is the full list of flags:\x0A");
 			$io->writeStderr("  daff diff [--output OUTPUT.csv] [--context NUM] [--all] [--act ACT] a.csv b.csv\x0A");
 			$io->writeStderr("     --id:          specify column to use as primary key (repeat for multi-column key)\x0A");
+			$io->writeStderr("     --ignore:      specify column to ignore completely (can repeat)\x0A");
 			$io->writeStderr("     --color:       highlight changes with terminal colors\x0A");
 			$io->writeStderr("     --context NUM: show NUM rows of context\x0A");
 			$io->writeStderr("     --all:         do not prune unchanged rows\x0A");
@@ -518,6 +537,7 @@ class coopy_Coopy {
 			$io->writeStderr("\x0A");
 			$io->writeStderr("  daff diff --git path old-file old-hex old-mode new-file new-hex new-mode\x0A");
 			$io->writeStderr("     --git:         process arguments provided by git to diff drivers\x0A");
+			$io->writeStderr("     --index:       include row/columns numbers from orginal tables\x0A");
 			$io->writeStderr("\x0A");
 			$io->writeStderr("  daff render [--output OUTPUT.html] [--css CSS.css] [--fragment] [--plain] diff.csv\x0A");
 			$io->writeStderr("     --css CSS.css: generate a suitable css file to go with the html\x0A");
@@ -648,7 +668,7 @@ class coopy_Coopy {
 		else
 			throw new HException('Unable to call <'.$m.'>');
 	}
-	static $VERSION = "1.1.16";
+	static $VERSION = "1.1.17";
 	static function compareTables($local, $remote, $flags = null) {
 		$ct = new coopy_CompareTable();
 		$comp = new coopy_TableComparisonState();
@@ -825,7 +845,7 @@ class coopy_Coopy {
 				unset($y);
 			}
 		}
-		haxe_Log::trace($txt, _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 705, "className" => "coopy.Coopy", "methodName" => "show")));
+		haxe_Log::trace($txt, _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 721, "className" => "coopy.Coopy", "methodName" => "show")));
 	}
 	static function jsonify($t) {
 		$workbook = new haxe_ds_StringMap();

@@ -13,6 +13,7 @@ class coopy_CompareFlags {
 		$this->always_show_header = true;
 		$this->acts = null;
 		$this->ids = null;
+		$this->columns_to_ignore = null;
 	}}
 	public $ordered;
 	public $show_unchanged;
@@ -24,6 +25,7 @@ class coopy_CompareFlags {
 	public $always_show_header;
 	public $acts;
 	public $ids;
+	public $columns_to_ignore;
 	public function allowUpdate() {
 		if($this->acts === null) {
 			return true;
@@ -41,6 +43,22 @@ class coopy_CompareFlags {
 			return true;
 		}
 		return $this->acts->exists("delete");
+	}
+	public function getIgnoredColumns() {
+		if($this->columns_to_ignore === null) {
+			return null;
+		}
+		$ignore = new haxe_ds_StringMap();
+		{
+			$_g1 = 0;
+			$_g = $this->columns_to_ignore->length;
+			while($_g1 < $_g) {
+				$i = $_g1++;
+				$ignore->set($this->columns_to_ignore[$i], true);
+				unset($i);
+			}
+		}
+		return $ignore;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
