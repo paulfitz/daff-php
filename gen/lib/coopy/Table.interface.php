@@ -12,4 +12,5 @@ interface coopy_Table {
 	function trimBlank();
 	function get_width();
 	function get_height();
+	function getData();
 }

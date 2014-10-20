@@ -66,11 +66,21 @@ class coopy_Alignment {
 	public function toString() {
 		return "" . _hx_string_or_null($this->map_a2b->toString());
 	}
-	public function toOrderPruned($rowlike) {
-		return $this->toOrderCached(true, $rowlike);
-	}
 	public function toOrder() {
-		return $this->toOrderCached(false, false);
+		if($this->order_cache !== null) {
+			if($this->reference !== null) {
+				if(!$this->order_cache_has_reference) {
+					$this->order_cache = null;
+				}
+			}
+		}
+		if($this->order_cache === null) {
+			$this->order_cache = $this->toOrder3();
+		}
+		if($this->reference !== null) {
+			$this->order_cache_has_reference = true;
+		}
+		return $this->order_cache;
 	}
 	public function getSource() {
 		return $this->ta;
@@ -84,132 +94,7 @@ class coopy_Alignment {
 	public function getTargetHeader() {
 		return $this->ib;
 	}
-	public function toOrderCached($prune, $rowlike) {
-		if($this->order_cache !== null) {
-			if($this->reference !== null) {
-				if(!$this->order_cache_has_reference) {
-					$this->order_cache = null;
-				}
-			}
-		}
-		if($this->order_cache === null) {
-			$this->order_cache = $this->toOrder3($prune, $rowlike);
-		}
-		if($this->reference !== null) {
-			$this->order_cache_has_reference = true;
-		}
-		return $this->order_cache;
-	}
-	public function pruneOrder($o, $ref, $rowlike) {
-		$tl = $ref->tb;
-		$tr = $this->tb;
-		if($rowlike) {
-			if($tl->get_width() !== $tr->get_width()) {
-				return;
-			}
-		} else {
-			if($tl->get_height() !== $tr->get_height()) {
-				return;
-			}
-		}
-		$units = $o->getList();
-		$left_units = new _hx_array(array());
-		$left_locs = new _hx_array(array());
-		$right_units = new _hx_array(array());
-		$right_locs = new _hx_array(array());
-		$eliminate = new _hx_array(array());
-		$ct = 0;
-		{
-			$_g1 = 0;
-			$_g = $units->length;
-			while($_g1 < $_g) {
-				$i = $_g1++;
-				$unit = $units[$i];
-				if($unit->l < 0 && $unit->r >= 0) {
-					$right_units->push($unit);
-					$right_locs->push($i);
-					$ct++;
-				} else {
-					if($unit->r < 0 && $unit->l >= 0) {
-						$left_units->push($unit);
-						$left_locs->push($i);
-						$ct++;
-					} else {
-						if($ct > 0) {
-							$left_units->splice(0, $left_units->length);
-							$right_units->splice(0, $right_units->length);
-							$left_locs->splice(0, $left_locs->length);
-							$right_locs->splice(0, $right_locs->length);
-							$ct = 0;
-						}
-					}
-				}
-				while($left_locs->length > 0 && $right_locs->length > 0) {
-					$l = _hx_array_get($left_units, 0)->l;
-					$r = _hx_array_get($right_units, 0)->r;
-					$view = $tl->getCellView();
-					$match = true;
-					if($rowlike) {
-						$w = $tl->get_width();
-						{
-							$_g2 = 0;
-							while($_g2 < $w) {
-								$j = $_g2++;
-								if(!$view->equals($tl->getCell($j, $l), $tr->getCell($j, $r))) {
-									$match = false;
-									break;
-								}
-								unset($j);
-							}
-							unset($_g2);
-						}
-						unset($w);
-					} else {
-						$h = $tl->get_height();
-						{
-							$_g21 = 0;
-							while($_g21 < $h) {
-								$j1 = $_g21++;
-								if(!$view->equals($tl->getCell($l, $j1), $tr->getCell($r, $j1))) {
-									$match = false;
-									break;
-								}
-								unset($j1);
-							}
-							unset($_g21);
-						}
-						unset($h);
-					}
-					if($match) {
-						$eliminate->push($left_locs[0]);
-						$eliminate->push($right_locs[0]);
-					}
-					$left_units->shift();
-					$right_units->shift();
-					$left_locs->shift();
-					$right_locs->shift();
-					$ct -= 2;
-					unset($view,$r,$match,$l);
-				}
-				unset($unit,$i);
-			}
-		}
-		if($eliminate->length > 0) {
-			$eliminate->sort(array(new _hx_lambda(array(&$ct, &$eliminate, &$left_locs, &$left_units, &$o, &$ref, &$right_locs, &$right_units, &$rowlike, &$tl, &$tr, &$units), "coopy_Alignment_0"), 'execute'));
-			$del = 0;
-			{
-				$_g3 = 0;
-				while($_g3 < $eliminate->length) {
-					$e = $eliminate[$_g3];
-					++$_g3;
-					$o->getList()->splice($e - $del, 1);
-					$del++;
-					unset($e);
-				}
-			}
-		}
-	}
-	public function toOrder3($prune, $rowlike) {
+	public function toOrder3() {
 		$ref = $this->reference;
 		if($ref === null) {
 			$ref = new coopy_Alignment();
@@ -271,7 +156,7 @@ class coopy_Alignment {
 		while($ct_vp > 0 || $ct_vl > 0 || $ct_vr > 0) {
 			$ct++;
 			if($ct > $max_ct) {
-				haxe_Log::trace("Ordering took too long, something went wrong", _hx_anonymous(array("fileName" => "Alignment.hx", "lineNumber" => 241, "className" => "coopy.Alignment", "methodName" => "toOrder3")));
+				haxe_Log::trace("Ordering took too long, something went wrong", _hx_anonymous(array("fileName" => "Alignment.hx", "lineNumber" => 153, "className" => "coopy.Alignment", "methodName" => "toOrder3")));
 				break;
 			}
 			if($xp >= $hp) {
@@ -397,9 +282,6 @@ class coopy_Alignment {
 			$xr++;
 			unset($zr,$zl);
 		}
-		if($prune) {
-			$this->pruneOrder($order, $ref, $rowlike);
-		}
 		return $order;
 	}
 	public function __call($m, $a) {
@@ -413,9 +295,4 @@ class coopy_Alignment {
 			throw new HException('Unable to call <'.$m.'>');
 	}
 	function __toString() { return $this->toString(); }
-}
-function coopy_Alignment_0(&$ct, &$eliminate, &$left_locs, &$left_units, &$o, &$ref, &$right_locs, &$right_units, &$rowlike, &$tl, &$tr, &$units, $a, $b) {
-	{
-		return $a - $b;
-	}
 }

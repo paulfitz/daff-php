@@ -38,7 +38,14 @@ class coopy_Index {
 					$item = new coopy_IndexItem();
 					$this->items->set($key, $item);
 				}
-				$ct = $item->add($i);
+				$ct = null;
+				{
+					if($item->lst === null) {
+						$item->lst = new _hx_array(array());
+					}
+					$item->lst->push($i);
+					$ct = $item->lst->length;
+				}
 				if($ct > $this->top_freq) {
 					$this->top_freq = $ct;
 				}

@@ -11,6 +11,12 @@ class coopy_IndexItem {
 		$this->lst->push($i);
 		return $this->lst->length;
 	}}
+	public function length() {
+		return $this->lst->length;
+	}
+	public function value() {
+		return $this->lst[0];
+	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);

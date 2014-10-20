@@ -91,9 +91,9 @@ class coopy_Merger {
 		$this->conflicts = 0;
 		$ct = coopy_Coopy::compareTables3($this->parent, $this->local, $this->remote, null);
 		$align = $ct->align();
-		$this->order = $align->toOrderPruned(true);
+		$this->order = $align->toOrder();
 		$this->units = $this->order->getList();
-		$this->column_order = $align->meta->toOrderPruned(false);
+		$this->column_order = $align->meta->toOrder();
 		$this->column_units = $this->column_order->getList();
 		$allow_insert = $this->flags->allowInsert();
 		$allow_delete = $this->flags->allowDelete();

@@ -36,20 +36,7 @@ class coopy_CompareTable {
 			$align->meta = new coopy_Alignment();
 		}
 		$this->alignColumns($align->meta, $a, $b);
-		$column_order = $align->meta->toOrderPruned(false);
-		$common_units = new _hx_array(array());
-		{
-			$_g = 0;
-			$_g1 = $column_order->getList();
-			while($_g < $_g1->length) {
-				$unit = $_g1[$_g];
-				++$_g;
-				if($unit->l >= 0 && $unit->r >= 0 && $unit->p !== -1) {
-					$common_units->push($unit);
-				}
-				unset($unit);
-			}
-		}
+		$column_order = $align->meta->toOrder();
 		$align->range($a->get_height(), $b->get_height());
 		$align->tables($a, $b);
 		$align->setRowlike(true);
@@ -58,8 +45,41 @@ class coopy_CompareTable {
 		$hb = $b->get_height();
 		$av = $a->getCellView();
 		$ids = null;
+		$ignore = null;
 		if($this->comp->compare_flags !== null) {
 			$ids = $this->comp->compare_flags->ids;
+			$ignore = $this->comp->compare_flags->getIgnoredColumns();
+		}
+		$common_units = new _hx_array(array());
+		$ra_header = $align->getSourceHeader();
+		$rb_header = $align->getSourceHeader();
+		{
+			$_g = 0;
+			$_g1 = $column_order->getList();
+			while($_g < $_g1->length) {
+				$unit = $_g1[$_g];
+				++$_g;
+				if($unit->l >= 0 && $unit->r >= 0 && $unit->p !== -1) {
+					if($ignore !== null) {
+						if($unit->l >= 0 && $ra_header >= 0 && $ra_header < $a->get_height()) {
+							$name = $av->toString($a->getCell($unit->l, $ra_header));
+							if($ignore->exists($name)) {
+								continue;
+							}
+							unset($name);
+						}
+						if($unit->r >= 0 && $rb_header >= 0 && $rb_header < $b->get_height()) {
+							$name1 = $av->toString($b->getCell($unit->r, $rb_header));
+							if($ignore->exists($name1)) {
+								continue;
+							}
+							unset($name1);
+						}
+					}
+					$common_units->push($unit);
+				}
+				unset($unit);
+			}
 		}
 		if($ids !== null) {
 			$index = new coopy_IndexPair();
@@ -153,9 +173,9 @@ class coopy_CompareTable {
 						unset($mem2,$mem,$i,$ct,$cb,$ca);
 					}
 				}
-				$sorter = array(new _hx_lambda(array(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$w), "coopy_CompareTable_0"), 'execute');
+				$sorter = array(new _hx_lambda(array(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$ignore, &$ra_header, &$rb_header, &$w), "coopy_CompareTable_0"), 'execute');
 				$columns_eval->sort($sorter);
-				$columns = Lambda::harray(Lambda::map($columns_eval, array(new _hx_lambda(array(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$sorter, &$w), "coopy_CompareTable_1"), 'execute')));
+				$columns = Lambda::harray(Lambda::map($columns_eval, array(new _hx_lambda(array(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$ignore, &$ra_header, &$rb_header, &$sorter, &$w), "coopy_CompareTable_1"), 'execute')));
 				$columns = $columns->slice(0, $N);
 			} else {
 				$_g12 = 0;
@@ -177,6 +197,9 @@ class coopy_CompareTable {
 				}
 			}
 			$pending_ct = $ha;
+			$added_columns = new haxe_ds_IntMap();
+			$index_ct = 0;
+			$index_top = null;
 			{
 				$_g8 = 0;
 				while($_g8 < $top) {
@@ -203,14 +226,21 @@ class coopy_CompareTable {
 						$_g13 = $active_columns->length;
 						while($_g23 < $_g13) {
 							$k1 = $_g23++;
-							$unit2 = $common_units[$active_columns[$k1]];
+							$col = $active_columns[$k1];
+							$unit2 = $common_units[$col];
 							$index1->addColumns($unit2->l, $unit2->r);
-							$align->addIndexColumns($unit2);
-							unset($unit2,$k1);
+							if(!$added_columns->exists($col)) {
+								$align->addIndexColumns($unit2);
+								$added_columns->set($col, true);
+							}
+							unset($unit2,$k1,$col);
 						}
 						unset($_g23,$_g13);
 					}
 					$index1->indexTables($a, $b);
+					if($k === $top - 1) {
+						$index_top = $index1;
+					}
 					$h = $a->get_height();
 					if($b->get_height() > $h) {
 						$h = $b->get_height();
@@ -222,8 +252,11 @@ class coopy_CompareTable {
 					$ratio = $wide_top_freq;
 					$ratio /= $h + 20;
 					if($ratio >= 0.1) {
-						continue;
+						if($index_ct > 0 || $k < $top - 1) {
+							continue;
+						}
 					}
+					$index_ct++;
 					if($this->indexes !== null) {
 						$this->indexes->push($index1);
 					}
@@ -255,6 +288,60 @@ class coopy_CompareTable {
 						unset($_g24,$_g14);
 					}
 					unset($wide_top_freq,$ratio,$kk,$k,$index1,$h,$fixed,$at,$active_columns);
+				}
+			}
+			if($index_top !== null) {
+				$offset = 0;
+				$scale = 1;
+				{
+					$_g9 = 0;
+					while($_g9 < 2) {
+						$sgn = $_g9++;
+						if($pending_ct > 0) {
+							$xb = null;
+							if($scale === -1 && $hb > 0) {
+								$xb = $hb - 1;
+							}
+							{
+								$_g15 = 0;
+								while($_g15 < $ha) {
+									$xa0 = $_g15++;
+									$xa = $xa0 * $scale + $offset;
+									$xb2 = $align->a2b($xa);
+									if($xb2 !== null) {
+										$xb = $xb2 + $scale;
+										if($xb >= $hb || $xb < 0) {
+											break;
+										}
+										continue;
+									}
+									if($xb === null) {
+										continue;
+									}
+									$ka = $index_top->localKey($xa);
+									$kb = $index_top->remoteKey($xb);
+									if($ka !== $kb) {
+										continue;
+									}
+									$align->link($xa, $xb);
+									$pending_ct--;
+									$xb += $scale;
+									if($xb >= $hb || $xb < 0) {
+										break;
+									}
+									if($pending_ct === 0) {
+										break;
+									}
+									unset($xb2,$xa0,$xa,$kb,$ka);
+								}
+								unset($_g15);
+							}
+							unset($xb);
+						}
+						$offset = $ha - 1;
+						$scale = -1;
+						unset($sgn);
+					}
 				}
 			}
 		}
@@ -497,7 +584,7 @@ class coopy_CompareTable {
 	}
 	function __toString() { return 'coopy.CompareTable'; }
 }
-function coopy_CompareTable_0(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$w, $a1, $b1) {
+function coopy_CompareTable_0(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$ignore, &$ra_header, &$rb_header, &$w, $a1, $b1) {
 	{
 		if($a1->a[1] < $b1[1]) {
 			return 1;
@@ -508,7 +595,7 @@ function coopy_CompareTable_0(&$N, &$a, &$align, &$av, &$b, &$column_order, &$co
 		return 0;
 	}
 }
-function coopy_CompareTable_1(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$sorter, &$w, $v) {
+function coopy_CompareTable_1(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$ignore, &$ra_header, &$rb_header, &$sorter, &$w, $v) {
 	{
 		return $v[0];
 	}

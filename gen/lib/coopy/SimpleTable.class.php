@@ -189,6 +189,9 @@ class coopy_SimpleTable implements coopy_Table{
 		$this->data = $data2;
 		return true;
 	}
+	public function getData() {
+		return null;
+	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);
