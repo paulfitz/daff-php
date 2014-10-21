@@ -5,6 +5,23 @@ class BasicTest extends DaffTestCase {
 
 	}
 
+	protected function _quickDiff($data1, $data2) {
+		$table1 = new coopy_PhpTableView($data1);
+		$table2 = new coopy_PhpTableView($data2);
+
+		$data_diff = [];
+		$table_diff = new coopy_PhpTableView($data_diff);
+
+		$highlighter = new coopy_TableDiff(coopy_Coopy::compareTables($table1, $table2)->align(), new coopy_CompareFlags());
+		$highlighter->hilite($table_diff);
+
+		$diff2html = new coopy_DiffRender();
+		$diff2html->usePrettyArrows(false);
+		$diff2html->render($table_diff);
+
+		return $diff2html->html();
+	}
+
 /**
  * Test example of a full array diff to HTML
  *
@@ -25,23 +42,7 @@ class BasicTest extends DaffTestCase {
 			['Spain','es','Madrid'],
 			['Germany','de','Berlin']
 		];
-
-		$table1 = new coopy_PhpTableView($data1);
-		$table2 = new coopy_PhpTableView($data2);
-
-		$alignment = coopy_Coopy::compareTables($table1, $table2)->align();
-
-		$data_diff = [];
-		$table_diff = new coopy_PhpTableView($data_diff);
-
-		$flags = new coopy_CompareFlags();
-		$highlighter = new coopy_TableDiff($alignment, $flags);
-		$highlighter->hilite($table_diff);
-
-		$diff2html = new coopy_DiffRender();
-		$diff2html->usePrettyArrows(false);
-		$diff2html->render($table_diff);
-		$table_diff_html = $diff2html->html();
+		$result = $this->_quickDiff($data1, $data2);
 
 		$expected = array(
 			'table' => array(),
@@ -83,10 +84,88 @@ class BasicTest extends DaffTestCase {
 				'/tr',
 			'/table',
 		);
-		static::assertHtml($expected, $table_diff_html);
+		static::assertHtml($expected, $result);
+	}
 
+/**
+ * test adding all new elements
+ *
+ * @return void
+ */
+	public function testAllNew() {
+		$data2 = [
+			['Country','Code','Capital'],
+			['Ireland','ie','Dublin'],
+		];
 
-		$patcher = new coopy_HighlightPatch($table1,$table_diff);
-		$patcher->apply();
+		$result = $this->_quickDiff([], $data2);
+
+		$expected = array(
+			'table' => array(),
+				array('tr' => array('class' => 'spec')),
+					array('td' => true), '!', '/td',
+					array('td' => array('class' => 'add')), '+++', '/td',
+					array('td' => array('class' => 'add')), '+++', '/td',
+					array('td' => array('class' => 'add')), '+++', '/td',
+				'/tr',
+				array('tr' => true),
+					array('th' => true), '@@', '/th',
+					array('th' => array('class' => 'add')), 'Country', '/th',
+					array('th' => array('class' => 'add')), 'Code', '/th',
+					array('th' => array('class' => 'add')), 'Capital', '/th',
+				'/tr',
+				array('tr' => array('class' => 'add')),
+					array('td' => true), '+++', '/td',
+					array('td' => array('class' => 'add')), 'Country', '/td',
+					array('td' => array('class' => 'add')), 'Code', '/td',
+					array('td' => array('class' => 'add')), 'Capital', '/td',
+				'/tr',
+				array('tr' => array('class' => 'add')),
+					array('td' => true), '+++', '/td',
+					array('td' => array('class' => 'add')), 'Ireland', '/td',
+					array('td' => array('class' => 'add')), 'ie', '/td',
+					array('td' => array('class' => 'add')), 'Dublin', '/td',
+				'/tr',
+			'/table',
+		);
+		static::assertHtml($expected, $result);
+	}
+
+/**
+ * test removing all elements
+ *
+ * @return void
+ */
+	public function testAllRemoved() {
+		$data1 = [
+			['Country','Code','Capital'],
+			['Ireland','ie','Dublin'],
+		];
+
+		$result = $this->_quickDiff($data1, []);
+
+		$expected = array(
+			'table' => array(),
+				array('tr' => array('class' => 'spec')),
+					array('td' => true), '!', '/td',
+					array('td' => array('class' => 'remove')), '---', '/td',
+					array('td' => array('class' => 'remove')), '---', '/td',
+					array('td' => array('class' => 'remove')), '---', '/td',
+				'/tr',
+				array('tr' => true),
+					array('th' => true), '@@', '/th',
+					array('th' => array('class' => 'remove')), 'Country', '/th',
+					array('th' => array('class' => 'remove')), 'Code', '/th',
+					array('th' => array('class' => 'remove')), 'Capital', '/th',
+				'/tr',
+				array('tr' => array('class' => 'remove')),
+					array('td' => true), '---', '/td',
+					array('td' => array('class' => 'remove')), 'Ireland', '/td',
+					array('td' => array('class' => 'remove')), 'ie', '/td',
+					array('td' => array('class' => 'remove')), 'Dublin', '/td',
+				'/tr',
+			'/table',
+		);
+		static::assertHtml($expected, $result);
 	}
 }
