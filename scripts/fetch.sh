@@ -4,6 +4,11 @@
 
 set -e
 
+if [ ! -e "scripts/fetch.sh" ]; then
+    echo "Please run from root of repository"
+    exit 1
+fi
+
 # assume we are at the same level as main daff repository
 src=$PWD/../daff/php_bin/
 dest=gen
