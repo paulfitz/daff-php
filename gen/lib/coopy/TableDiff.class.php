@@ -5,11 +5,14 @@ class coopy_TableDiff {
 		if(!php_Boot::$skip_constructor) {
 		$this->align = $align;
 		$this->flags = $flags;
+		$this->builder = null;
 	}}
 	public $align;
 	public $flags;
-	public $l_prev;
-	public $r_prev;
+	public $builder;
+	public function setCellBuilder($builder) {
+		$this->builder = $builder;
+	}
 	public function getSeparator($t, $t2, $root) {
 		$sep = $root;
 		$w = $t->get_width();
@@ -181,26 +184,6 @@ class coopy_TableDiff {
 			}
 		}
 	}
-	public function reportUnit($unit) {
-		$txt = $unit->toString();
-		$reordered = false;
-		if($unit->l >= 0) {
-			if($unit->l < $this->l_prev) {
-				$reordered = true;
-			}
-			$this->l_prev = $unit->l;
-		}
-		if($unit->r >= 0) {
-			if($unit->r < $this->r_prev) {
-				$reordered = true;
-			}
-			$this->r_prev = $unit->r;
-		}
-		if($reordered) {
-			$txt = "[" . _hx_string_or_null($txt) . "]";
-		}
-		return $txt;
-	}
 	public function setIgnore($ignore, $idx_ignore, $tab, $r_header) {
 		$v = $tab->getCellView();
 		if($tab->get_height() >= $r_header) {
@@ -217,9 +200,35 @@ class coopy_TableDiff {
 			}
 		}
 	}
+	public function countActive($active) {
+		$ct = 0;
+		$showed_dummy = false;
+		{
+			$_g1 = 0;
+			$_g = $active->length;
+			while($_g1 < $_g) {
+				$i = $_g1++;
+				$publish = $active->a[$i] > 0;
+				$dummy = $active[$i] === 3;
+				if($dummy && $showed_dummy) {
+					continue;
+				}
+				if(!$publish) {
+					continue;
+				}
+				$showed_dummy = $dummy;
+				$ct++;
+				unset($publish,$i,$dummy);
+			}
+		}
+		return $ct;
+	}
 	public function hilite($output) {
 		if(!$output->isResizable()) {
 			return false;
+		}
+		if($this->builder === null) {
+			$this->builder = new coopy_FlatCellBuilder();
 		}
 		$output->resize(0, 0);
 		$output->clear();
@@ -393,6 +402,7 @@ class coopy_TableDiff {
 			}
 		}
 		$v1 = $a->getCellView();
+		$this->builder->setView($v1);
 		$outer_reps_needed = null;
 		if($this->flags->show_unchanged && $this->flags->show_unchanged_columns) {
 			$outer_reps_needed = 1;
@@ -467,7 +477,7 @@ class coopy_TableDiff {
 		if($have_schema) {
 			$at = $output->get_height();
 			$output->resize($column_units->length + 1, $at + 1);
-			$output->setCell(0, $at, $v1->toDatum("!"));
+			$output->setCell(0, $at, $this->builder->marker("!"));
 			{
 				$_g19 = 0;
 				$_g10 = $column_units->length;
@@ -482,7 +492,7 @@ class coopy_TableDiff {
 		if($this->flags->always_show_header) {
 			$at1 = $output->get_height();
 			$output->resize($column_units->length + 1, $at1 + 1);
-			$output->setCell(0, $at1, $v1->toDatum("@@"));
+			$output->setCell(0, $at1, $this->builder->marker("@@"));
 			{
 				$_g110 = 0;
 				$_g20 = $column_units->length;
@@ -506,6 +516,9 @@ class coopy_TableDiff {
 			}
 			$top_line_done = true;
 		}
+		$outer_reps_needed = 2;
+		$output_height = $output->get_height();
+		$output_height_init = $output->get_height();
 		{
 			$_g21 = 0;
 			while($_g21 < $outer_reps_needed) {
@@ -525,6 +538,15 @@ class coopy_TableDiff {
 						}
 						unset($_g22,$_g111);
 					}
+					$rows = $this->countActive($active) + $output_height_init;
+					if($top_line_done) {
+						$rows--;
+					}
+					$output_height = $output_height_init;
+					if($rows > $output->get_height()) {
+						$output->resize($column_units->length + 1, $rows);
+					}
+					unset($rows);
 				}
 				$showed_dummy = false;
 				$l = -1;
@@ -569,9 +591,12 @@ class coopy_TableDiff {
 						if(!$dummy) {
 							$showed_dummy = false;
 						}
-						$at2 = $output->get_height();
+						$at2 = $output_height;
 						if($publish) {
-							$output->resize($column_units->length + 1, $at2 + 1);
+							$output_height++;
+							if($output->get_height() < $output_height) {
+								$output->resize($column_units->length + 1, $output_height);
+							}
 						}
 						if($dummy) {
 							{
@@ -580,11 +605,11 @@ class coopy_TableDiff {
 								while($_g41 < $_g31) {
 									$j4 = $_g41++;
 									$output->setCell($j4, $at2, $v1->toDatum("..."));
-									$showed_dummy = true;
 									unset($j4);
 								}
 								unset($_g41,$_g31);
 							}
+							$showed_dummy = true;
 							continue;
 						}
 						$have_addition = false;
@@ -637,7 +662,7 @@ class coopy_TableDiff {
 								if($cunit3->r >= 0 && $unit1->r >= 0) {
 									$rr = $b->getCell($cunit3->r, $unit1->r);
 									$have_rr = true;
-									if((coopy_TableDiff_0($this, $_g112, $_g21, $_g23, $_g32, $_g42, $a, $a_ignore, $act1, $active, $active_column, $allow_delete, $allow_insert, $allow_update, $at2, $b, $b_ignore, $col_map, $col_moves, $column_order, $column_units, $conflict_sep, $cunit3, $dd, $dd_to, $dd_to_alt, $dummy, $has_parent, $have_addition, $have_dd_to, $have_dd_to_alt, $have_ll, $have_pp, $have_rr, $have_schema, $i5, $ignore, $is_index_a, $is_index_b, $is_index_p, $j5, $l, $ll, $order, $out, $outer_reps_needed, $output, $p, $p_ignore, $pp1, $publish, $r, $ra_header, $rb_header, $reordered1, $row_map, $row_moves, $rp_header, $rr, $schema, $sep, $show_rc_numbers, $showed_dummy, $skip, $top_line_done, $unit1, $units, $v1)) < 0) {
+									if((coopy_TableDiff_0($this, $_g112, $_g21, $_g23, $_g32, $_g42, $a, $a_ignore, $act1, $active, $active_column, $allow_delete, $allow_insert, $allow_update, $at2, $b, $b_ignore, $col_map, $col_moves, $column_order, $column_units, $conflict_sep, $cunit3, $dd, $dd_to, $dd_to_alt, $dummy, $has_parent, $have_addition, $have_dd_to, $have_dd_to_alt, $have_ll, $have_pp, $have_rr, $have_schema, $i5, $ignore, $is_index_a, $is_index_b, $is_index_p, $j5, $l, $ll, $order, $out, $outer_reps_needed, $output, $output_height, $output_height_init, $p, $p_ignore, $pp1, $publish, $r, $ra_header, $rb_header, $reordered1, $row_map, $row_moves, $rp_header, $rr, $schema, $sep, $show_rc_numbers, $showed_dummy, $skip, $top_line_done, $unit1, $units, $v1)) < 0) {
 										if($rr !== null) {
 											if($v1->toString($rr) !== "") {
 												if($this->flags->allowUpdate()) {
@@ -682,14 +707,18 @@ class coopy_TableDiff {
 										$dd = $rr;
 									}
 								}
-								$txt = null;
+								$cell = $dd;
 								if($have_dd_to && $allow_update) {
 									if($active_column !== null) {
 										$active_column[$j5] = 1;
 									}
-									$txt = $this->quoteForDiff($v1, $dd);
 									if($sep === "") {
-										$sep = $this->getSeparator($a, $b, "->");
+										if($this->builder->needSeparator()) {
+											$sep = $this->getSeparator($a, $b, "->");
+											$this->builder->setSeparator($sep);
+										} else {
+											$sep = "->";
+										}
 									}
 									$is_conflict = false;
 									if($have_dd_to_alt) {
@@ -698,15 +727,20 @@ class coopy_TableDiff {
 										}
 									}
 									if(!$is_conflict) {
-										$txt = _hx_string_or_null($txt) . _hx_string_or_null($sep) . _hx_string_or_null($this->quoteForDiff($v1, $dd_to));
+										$cell = $this->builder->update($dd, $dd_to);
 										if(strlen($sep) > strlen($act1)) {
 											$act1 = $sep;
 										}
 									} else {
 										if($conflict_sep === "") {
-											$conflict_sep = _hx_string_or_null($this->getSeparator($p, $a, "!")) . _hx_string_or_null($sep);
+											if($this->builder->needSeparator()) {
+												$conflict_sep = _hx_string_or_null($this->getSeparator($p, $a, "!")) . _hx_string_or_null($sep);
+												$this->builder->setConflictSeparator($conflict_sep);
+											} else {
+												$conflict_sep = "!->";
+											}
 										}
-										$txt = _hx_string_or_null($txt) . _hx_string_or_null($conflict_sep) . _hx_string_or_null($this->quoteForDiff($v1, $dd_to_alt)) . _hx_string_or_null($conflict_sep) . _hx_string_or_null($this->quoteForDiff($v1, $dd_to));
+										$cell = $this->builder->conflict($dd, $dd_to_alt, $dd_to);
 										$act1 = $conflict_sep;
 									}
 									unset($is_conflict);
@@ -723,19 +757,15 @@ class coopy_TableDiff {
 								}
 								if($publish) {
 									if($active_column === null || $active_column->a[$j5] > 0) {
-										if($txt !== null) {
-											$output->setCell($j5 + 1, $at2, $v1->toDatum($txt));
-										} else {
-											$output->setCell($j5 + 1, $at2, $dd);
-										}
+										$output->setCell($j5 + 1, $at2, $cell);
 									}
 								}
-								unset($txt,$rr,$pp1,$ll,$j5,$have_rr,$have_pp,$have_ll,$have_dd_to_alt,$have_dd_to,$dd_to_alt,$dd_to,$dd,$cunit3);
+								unset($rr,$pp1,$ll,$j5,$have_rr,$have_pp,$have_ll,$have_dd_to_alt,$have_dd_to,$dd_to_alt,$dd_to,$dd,$cunit3,$cell);
 							}
 							unset($_g42,$_g32);
 						}
 						if($publish) {
-							$output->setCell(0, $at2, $v1->toDatum($act1));
+							$output->setCell(0, $at2, $this->builder->marker($act1));
 							$row_map->set($at2, $unit1);
 						}
 						if($act1 !== "") {
@@ -778,8 +808,6 @@ class coopy_TableDiff {
 				}
 			}
 			$output->insertOrDeleteColumns($target, $output->get_width() + 1);
-			$this->l_prev = -1;
-			$this->r_prev = -1;
 			{
 				$_g114 = 0;
 				$_g25 = $output->get_height();
@@ -789,7 +817,7 @@ class coopy_TableDiff {
 					if($unit2 === null) {
 						continue;
 					}
-					$output->setCell(0, $i7, $this->reportUnit($unit2));
+					$output->setCell(0, $i7, $this->builder->links($unit2));
 					unset($unit2,$i7);
 				}
 			}
@@ -804,8 +832,6 @@ class coopy_TableDiff {
 				}
 			}
 			$output->insertOrDeleteRows($target, $output->get_height() + 1);
-			$this->l_prev = -1;
-			$this->r_prev = -1;
 			{
 				$_g116 = 1;
 				$_g27 = $output->get_width();
@@ -815,11 +841,11 @@ class coopy_TableDiff {
 					if($unit3 === null) {
 						continue;
 					}
-					$output->setCell($i9, 0, $this->reportUnit($unit3));
+					$output->setCell($i9, 0, $this->builder->links($unit3));
 					unset($unit3,$i9);
 				}
 			}
-			$output->setCell(0, 0, "@:@");
+			$output->setCell(0, 0, $this->builder->marker("@:@"));
 		}
 		if($active_column !== null) {
 			$all_active = true;
@@ -882,7 +908,7 @@ class coopy_TableDiff {
 							$_g119 = $output->get_height();
 							while($_g210 < $_g119) {
 								$j6 = $_g210++;
-								$output->setCell($d, $j6, "...");
+								$output->setCell($d, $j6, $this->builder->marker("..."));
 								unset($j6);
 							}
 							unset($_g210,$_g119);
@@ -906,7 +932,7 @@ class coopy_TableDiff {
 	}
 	function __toString() { return 'coopy.TableDiff'; }
 }
-function coopy_TableDiff_0(&$__hx__this, &$_g112, &$_g21, &$_g23, &$_g32, &$_g42, &$a, &$a_ignore, &$act1, &$active, &$active_column, &$allow_delete, &$allow_insert, &$allow_update, &$at2, &$b, &$b_ignore, &$col_map, &$col_moves, &$column_order, &$column_units, &$conflict_sep, &$cunit3, &$dd, &$dd_to, &$dd_to_alt, &$dummy, &$has_parent, &$have_addition, &$have_dd_to, &$have_dd_to_alt, &$have_ll, &$have_pp, &$have_rr, &$have_schema, &$i5, &$ignore, &$is_index_a, &$is_index_b, &$is_index_p, &$j5, &$l, &$ll, &$order, &$out, &$outer_reps_needed, &$output, &$p, &$p_ignore, &$pp1, &$publish, &$r, &$ra_header, &$rb_header, &$reordered1, &$row_map, &$row_moves, &$rp_header, &$rr, &$schema, &$sep, &$show_rc_numbers, &$showed_dummy, &$skip, &$top_line_done, &$unit1, &$units, &$v1) {
+function coopy_TableDiff_0(&$__hx__this, &$_g112, &$_g21, &$_g23, &$_g32, &$_g42, &$a, &$a_ignore, &$act1, &$active, &$active_column, &$allow_delete, &$allow_insert, &$allow_update, &$at2, &$b, &$b_ignore, &$col_map, &$col_moves, &$column_order, &$column_units, &$conflict_sep, &$cunit3, &$dd, &$dd_to, &$dd_to_alt, &$dummy, &$has_parent, &$have_addition, &$have_dd_to, &$have_dd_to_alt, &$have_ll, &$have_pp, &$have_rr, &$have_schema, &$i5, &$ignore, &$is_index_a, &$is_index_b, &$is_index_p, &$j5, &$l, &$ll, &$order, &$out, &$outer_reps_needed, &$output, &$output_height, &$output_height_init, &$p, &$p_ignore, &$pp1, &$publish, &$r, &$ra_header, &$rb_header, &$reordered1, &$row_map, &$row_moves, &$rp_header, &$rr, &$schema, &$sep, &$show_rc_numbers, &$showed_dummy, &$skip, &$top_line_done, &$unit1, &$units, &$v1) {
 	if($have_pp) {
 		return $cunit3->p;
 	} else {

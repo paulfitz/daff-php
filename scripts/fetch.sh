@@ -38,7 +38,6 @@ done
 
 # check version
 version=`php gen/index.php version`
-sed -i "s|\"version\"\: \".*\"|\"version\": \"$version\"|" composer.json
 git show v$version || {
     git commit -m "$version" -a
     git tag -a "v$version" -m "$version"

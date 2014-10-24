@@ -60,6 +60,18 @@ class coopy_CompareFlags {
 		}
 		return $ignore;
 	}
+	public function addPrimaryKey($column) {
+		if($this->ids === null) {
+			$this->ids = new _hx_array(array());
+		}
+		$this->ids->push($column);
+	}
+	public function ignoreColumn($column) {
+		if($this->columns_to_ignore === null) {
+			$this->columns_to_ignore = new _hx_array(array());
+		}
+		$this->columns_to_ignore->push($column);
+	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);

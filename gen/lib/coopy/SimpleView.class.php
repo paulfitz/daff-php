@@ -29,11 +29,8 @@ class coopy_SimpleView implements coopy_View{
 		}
 		return "" . Std::string($d1) === "" . Std::string($d2);
 	}
-	public function toDatum($str) {
-		if($str === null) {
-			return null;
-		}
-		return new coopy_SimpleCell($str);
+	public function toDatum($x) {
+		return $x;
 	}
 	function __toString() { return $this->toString(); }
 }

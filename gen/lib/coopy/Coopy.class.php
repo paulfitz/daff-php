@@ -668,7 +668,7 @@ class coopy_Coopy {
 		else
 			throw new HException('Unable to call <'.$m.'>');
 	}
-	static $VERSION = "1.1.17";
+	static $VERSION = "1.1.19";
 	static function compareTables($local, $remote, $flags = null) {
 		$ct = new coopy_CompareTable();
 		$comp = new coopy_TableComparisonState();
@@ -744,10 +744,7 @@ class coopy_Coopy {
 		return 0;
 	}
 	static function cellFor($x) {
-		if($x === null) {
-			return null;
-		}
-		return new coopy_SimpleCell($x);
+		return $x;
 	}
 	static function jsonToTable($json) {
 		$output = null;
@@ -845,7 +842,7 @@ class coopy_Coopy {
 				unset($y);
 			}
 		}
-		haxe_Log::trace($txt, _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 721, "className" => "coopy.Coopy", "methodName" => "show")));
+		haxe_Log::trace($txt, _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 725, "className" => "coopy.Coopy", "methodName" => "show")));
 	}
 	static function jsonify($t) {
 		$workbook = new haxe_ds_StringMap();
