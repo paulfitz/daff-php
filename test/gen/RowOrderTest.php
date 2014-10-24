@@ -17,8 +17,7 @@ class harness_RowOrderTest extends haxe_unit_TestCase {
 		$flags->never_show_order = false;
 		$highlighter = new coopy_TableDiff($alignment, $flags);
 		$highlighter->hilite($table_diff);
-		$txt = "" . Std::string($table_diff);
-		$this->assertEquals("-:4", $table_diff->getCell(0, 6), _hx_anonymous(array("fileName" => "RowOrderTest.hx", "lineNumber" => 27, "className" => "harness.RowOrderTest", "methodName" => "testRowOrder")));
+		$this->assertEquals("-:4", $table_diff->getCell(0, 6), _hx_anonymous(array("fileName" => "RowOrderTest.hx", "lineNumber" => 26, "className" => "harness.RowOrderTest", "methodName" => "testRowOrder")));
 	}
 	function __toString() { return 'harness.RowOrderTest'; }
 }

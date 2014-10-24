@@ -2,29 +2,44 @@
 
 class harness_Native {
 	public function __construct(){}
+	static function hlist($data) {
+		$ndata = array();
+		$w = _hx_len($data);
+		if($w > 0) {
+			$ndata = array_pad(array(),$w,null);
+			{
+				$_g = 0;
+				while($_g < $w) {
+					$j = $_g++;
+					$x = $data[$j];
+					$ndata[$j] = $x;
+					unset($x,$j);
+				}
+			}
+		}
+		return $ndata;
+	}
 	static function nativeArray($data) {
 		$ndata = array();
 		$h = _hx_len($data);
 		if($h > 0) {
 			$w = _hx_len($data[0]);
+			$ndata = array_pad(array(),$h,array_pad(array(),$w,null));
 			{
 				$_g = 0;
 				while($_g < $h) {
 					$i = $_g++;
-					$row = $data[$i];
-					$nrow = array();
 					{
 						$_g1 = 0;
 						while($_g1 < $w) {
 							$j = $_g1++;
-							$x = $row[$j];
-							array_push($nrow,$x);
+							$x = $data[$i][$j];
+							$ndata[$i][$j] = $x;
 							unset($x,$j);
 						}
 						unset($_g1);
 					}
-					array_push($ndata,$nrow);
-					unset($row,$i);
+					unset($i);
 				}
 			}
 		}
