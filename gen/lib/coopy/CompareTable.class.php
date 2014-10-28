@@ -1,19 +1,23 @@
 <?php
 
 class coopy_CompareTable {
-	public function __construct() {}
-	public $comp;
-	public $indexes;
-	public function attach($comp) {
+	public function __construct($comp) {
 		if(!php_Boot::$skip_constructor) {
 		$this->comp = $comp;
+	}}
+	public $comp;
+	public $indexes;
+	public function run() {
 		$more = $this->compareCore();
-		while($more && $comp->run_to_completion) {
+		while($more && $this->comp->run_to_completion) {
 			$more = $this->compareCore();
 		}
 		return !$more;
-	}}
+	}
 	public function align() {
+		while(!$this->comp->completed) {
+			$this->run();
+		}
 		$alignment = new coopy_Alignment();
 		$this->alignCore($alignment);
 		return $alignment;
@@ -345,7 +349,9 @@ class coopy_CompareTable {
 				}
 			}
 		}
-		$align->link(0, 0);
+		if($ha > 0 && $hb > 0) {
+			$align->link(0, 0);
+		}
 	}
 	public function alignColumns($align, $a, $b) {
 		$align->range($a->get_width(), $b->get_width());
@@ -453,6 +459,13 @@ class coopy_CompareTable {
 			}
 		}
 		if($ma_best === null) {
+			if($a->get_height() > 0 && $b->get_height() === 0) {
+				$align->headers(0, -1);
+			} else {
+				if($a->get_height() === 0 && $b->get_height() > 0) {
+					$align->headers(-1, 0);
+				}
+			}
 			return;
 		}
 		if(null == $ma_best) throw new HException('null iterable');

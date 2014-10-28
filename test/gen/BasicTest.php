@@ -34,6 +34,30 @@ class harness_BasicTest extends haxe_unit_TestCase {
 		$highlighter->hilite($table_diff);
 		$this->assertEquals("" . Std::string($table_diff->getCell(3, 6)), "Barcelona", _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 43, "className" => "harness.BasicTest", "methodName" => "testNamedID")));
 	}
+	public function testCSV() {
+		$txt = "name,age\x0APaul,\"7,9\"\x0A\"Sam\x0ASpace\",\"\"\"\"\x0A";
+		$tab = harness_Native::table((new _hx_array(array())));
+		$csv = new coopy_Csv(null);
+		$csv->parseTable($txt, $tab);
+		$this->assertEquals(3, $tab->get_height(), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 51, "className" => "harness.BasicTest", "methodName" => "testCSV")));
+		$this->assertEquals(2, $tab->get_width(), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 52, "className" => "harness.BasicTest", "methodName" => "testCSV")));
+		$this->assertEquals("Paul", $tab->getCell(0, 1), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 53, "className" => "harness.BasicTest", "methodName" => "testCSV")));
+		$this->assertEquals("\"", $tab->getCell(1, 2), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 54, "className" => "harness.BasicTest", "methodName" => "testCSV")));
+	}
+	public function testEmpty() {
+		$table1 = harness_Native::table($this->data1);
+		$table2 = harness_Native::table((new _hx_array(array())));
+		$alignment = coopy_Coopy::compareTables($table1, $table2, null)->align();
+		$data_diff = (new _hx_array(array()));
+		$table_diff = harness_Native::table($data_diff);
+		$flags = new coopy_CompareFlags();
+		$highlighter = new coopy_TableDiff($alignment, $flags);
+		$highlighter->hilite($table_diff);
+		$table3 = $table1->hclone();
+		$patcher = new coopy_HighlightPatch($table3, $table_diff);
+		$patcher->apply();
+		$this->assertEquals(0, $table3->get_height(), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 69, "className" => "harness.BasicTest", "methodName" => "testEmpty")));
+	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);

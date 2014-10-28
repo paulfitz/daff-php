@@ -1,8 +1,8 @@
 <?php
 
 class coopy_Mover {
-	public function __construct() {}
-	static function moveUnits($units) { if(!php_Boot::$skip_constructor) {
+	public function __construct(){}
+	static function moveUnits($units) {
 		$isrc = new _hx_array(array());
 		$idest = new _hx_array(array());
 		$len = $units->length;
@@ -60,8 +60,8 @@ class coopy_Mover {
 			}
 		}
 		return coopy_Mover::moveWithoutExtras($isrc, $idest);
-	}}
-	static function moveWithExtras($isrc, $idest) {
+	}
+	static function move($isrc, $idest) {
 		$len = $isrc->length;
 		$len2 = $idest->length;
 		$in_src = new haxe_ds_IntMap();

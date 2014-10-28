@@ -19,9 +19,6 @@ class coopy_SimpleTable implements coopy_Table{
 	public function get_height() {
 		return $this->h;
 	}
-	public function get_size() {
-		return $this->h;
-	}
 	public function getCell($x, $y) {
 		return $this->data->get($x + $y * $this->w);
 	}
@@ -192,6 +189,28 @@ class coopy_SimpleTable implements coopy_Table{
 	public function getData() {
 		return null;
 	}
+	public function hclone() {
+		$result = new coopy_SimpleTable($this->get_width(), $this->get_height());
+		{
+			$_g1 = 0;
+			$_g = $this->get_height();
+			while($_g1 < $_g) {
+				$i = $_g1++;
+				{
+					$_g3 = 0;
+					$_g2 = $this->get_width();
+					while($_g3 < $_g2) {
+						$j = $_g3++;
+						$result->setCell($j, $i, $this->getCell($j, $i));
+						unset($j);
+					}
+					unset($_g3,$_g2);
+				}
+				unset($i);
+			}
+		}
+		return $result;
+	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);
@@ -228,6 +247,36 @@ class coopy_SimpleTable implements coopy_Table{
 		}
 		return $x;
 	}
-	static $__properties__ = array("get_size" => "get_size","get_width" => "get_width","get_height" => "get_height");
+	static function tableIsSimilar($tab1, $tab2) {
+		if($tab1->get_width() !== $tab2->get_width()) {
+			return false;
+		}
+		if($tab1->get_height() !== $tab2->get_height()) {
+			return false;
+		}
+		$v = $tab1->getCellView();
+		{
+			$_g1 = 0;
+			$_g = $tab1->get_height();
+			while($_g1 < $_g) {
+				$i = $_g1++;
+				{
+					$_g3 = 0;
+					$_g2 = $tab1->get_width();
+					while($_g3 < $_g2) {
+						$j = $_g3++;
+						if(!$v->equals($tab1->getCell($j, $i), $tab2->getCell($j, $i))) {
+							return false;
+						}
+						unset($j);
+					}
+					unset($_g3,$_g2);
+				}
+				unset($i);
+			}
+		}
+		return true;
+	}
+	static $__properties__ = array("get_width" => "get_width","get_height" => "get_height");
 	function __toString() { return $this->toString(); }
 }

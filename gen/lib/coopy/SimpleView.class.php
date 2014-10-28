@@ -8,15 +8,6 @@ class coopy_SimpleView implements coopy_View{
 		}
 		return "" . Std::string($d);
 	}}
-	public function getBag($d) {
-		return null;
-	}
-	public function getTable($d) {
-		return null;
-	}
-	public function hasStructure($d) {
-		return false;
-	}
 	public function equals($d1, $d2) {
 		if($d1 === null && $d2 === null) {
 			return true;

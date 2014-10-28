@@ -130,9 +130,9 @@ class coopy_HighlightPatch implements coopy_Row{
 		$state = new coopy_TableComparisonState();
 		$state->a = $this->source;
 		$state->b = $this->source;
-		$comp = new coopy_CompareTable();
+		$comp = new coopy_CompareTable($state);
 		$comp->storeIndexes();
-		$comp->attach($state);
+		$comp->run();
 		$comp->align();
 		$this->indexes = $comp->getIndexes();
 		$this->needSourceColumns();
@@ -600,7 +600,7 @@ class coopy_HighlightPatch implements coopy_Row{
 								if($this->cellInfo->conflicted) {
 									continue;
 								}
-								$d = $this->view->toDatum($this->csv->parseSingleCell($this->cellInfo->rvalue));
+								$d = $this->view->toDatum($this->csv->parseCell($this->cellInfo->rvalue));
 								$this->source->setCell($this->patchInSourceCol->get($c1), $mod1->destRow, $d);
 								unset($txt,$d);
 							}

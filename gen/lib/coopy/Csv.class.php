@@ -96,25 +96,45 @@ class coopy_Csv {
 		}
 		return $result;
 	}
-	public function parseTable($txt) {
+	public function parseTable($txt, $tab) {
+		if(!$tab->isResizable()) {
+			return false;
+		}
 		$this->cursor = 0;
 		$this->row_ended = false;
 		$this->has_structure = true;
-		$result = new _hx_array(array());
-		$row = new _hx_array(array());
+		$tab->resize(0, 0);
+		$w = 0;
+		$h = 0;
+		$at = 0;
+		$yat = 0;
 		while($this->cursor < strlen($txt)) {
-			$cell = $this->parseCell($txt);
-			$row->push($cell);
+			$cell = $this->parseCellPart($txt);
+			if($yat >= $h) {
+				$h = $yat + 1;
+				$tab->resize($w, $h);
+			}
+			if($at >= $w) {
+				$w = $at + 1;
+				$tab->resize($w, $h);
+			}
+			$tab->setCell($at, $h - 1, $cell);
+			$at++;
 			if($this->row_ended) {
-				$result->push($row);
-				$row = new _hx_array(array());
+				$at = 0;
+				$yat++;
 			}
 			$this->cursor++;
 			unset($cell);
 		}
-		return $result;
+		return true;
 	}
-	public function parseCell($txt) {
+	public function makeTable($txt) {
+		$tab = new coopy_SimpleTable(0, 0);
+		$this->parseTable($txt, $tab);
+		return $tab;
+	}
+	public function parseCellPart($txt) {
 		if($txt === null) {
 			return null;
 		}
@@ -193,11 +213,11 @@ class coopy_Csv {
 		}
 		return $result;
 	}
-	public function parseSingleCell($txt) {
+	public function parseCell($txt) {
 		$this->cursor = 0;
 		$this->row_ended = false;
 		$this->has_structure = false;
-		return $this->parseCell($txt);
+		return $this->parseCellPart($txt);
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

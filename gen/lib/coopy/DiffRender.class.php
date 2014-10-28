@@ -58,14 +58,14 @@ class coopy_DiffRender {
 	public function toString() {
 		return $this->html();
 	}
-	public function render($rows) {
-		if($rows->get_width() === 0 || $rows->get_height() === 0) {
-			return;
+	public function render($tab) {
+		if($tab->get_width() === 0 || $tab->get_height() === 0) {
+			return $this;
 		}
 		$render = $this;
 		$render->beginTable();
 		$change_row = -1;
-		$tt = new coopy_TableText($rows);
+		$tt = new coopy_TableText($tab);
 		$cell = new coopy_CellInfo();
 		$corner = $tt->getCellText(0, 0);
 		$off = null;
@@ -75,13 +75,13 @@ class coopy_DiffRender {
 			$off = 0;
 		}
 		if($off > 0) {
-			if($rows->get_width() <= 1 || $rows->get_height() <= 1) {
-				return;
+			if($tab->get_width() <= 1 || $tab->get_height() <= 1) {
+				return $this;
 			}
 		}
 		{
 			$_g1 = 0;
-			$_g = $rows->get_height();
+			$_g = $tab->get_height();
 			while($_g1 < $_g) {
 				$row = $_g1++;
 				$open = false;
@@ -97,11 +97,11 @@ class coopy_DiffRender {
 				$render->beginRow($row_mode);
 				{
 					$_g3 = 0;
-					$_g2 = $rows->get_width();
+					$_g2 = $tab->get_width();
 					while($_g3 < $_g2) {
 						$c = $_g3++;
 						coopy_DiffRender::examineCell($c, $row, $tt->getCellText($c, $row), (($change_row >= 0) ? $tt->getCellText($c, $change_row) : ""), $txt, $corner, $cell);
-						$render->insertCell(coopy_DiffRender_0($this, $_g, $_g1, $_g2, $_g3, $c, $cell, $change_row, $corner, $off, $open, $render, $row, $row_mode, $rows, $tt, $txt), $cell->category_given_tr);
+						$render->insertCell(coopy_DiffRender_0($this, $_g, $_g1, $_g2, $_g3, $c, $cell, $change_row, $corner, $off, $open, $render, $row, $row_mode, $tab, $tt, $txt), $cell->category_given_tr);
 						unset($c);
 					}
 					unset($_g3,$_g2);
@@ -111,6 +111,7 @@ class coopy_DiffRender {
 			}
 		}
 		$render->endTable();
+		return $this;
 	}
 	public function sampleCss() {
 		return ".highlighter .add { \x0A  background-color: #7fff7f;\x0A}\x0A\x0A.highlighter .remove { \x0A  background-color: #ff7f7f;\x0A}\x0A\x0A.highlighter td.modify { \x0A  background-color: #7f7fff;\x0A}\x0A\x0A.highlighter td.conflict { \x0A  background-color: #f00;\x0A}\x0A\x0A.highlighter .spec { \x0A  background-color: #aaa;\x0A}\x0A\x0A.highlighter .move { \x0A  background-color: #ffa;\x0A}\x0A\x0A.highlighter .null { \x0A  color: #888;\x0A}\x0A\x0A.highlighter table { \x0A  border-collapse:collapse;\x0A}\x0A\x0A.highlighter td, .highlighter th {\x0A  border: 1px solid #2D4068;\x0A  padding: 3px 7px 2px;\x0A}\x0A\x0A.highlighter th, .highlighter .header { \x0A  background-color: #aaf;\x0A  font-weight: bold;\x0A  padding-bottom: 4px;\x0A  padding-top: 5px;\x0A  text-align:left;\x0A}\x0A\x0A.highlighter tr:first-child td {\x0A  border-top: 1px solid #2D4068;\x0A}\x0A\x0A.highlighter td:first-child { \x0A  border-left: 1px solid #2D4068;\x0A}\x0A\x0A.highlighter td {\x0A  empty-cells: show;\x0A}\x0A";
@@ -285,7 +286,7 @@ class coopy_DiffRender {
 	}
 	function __toString() { return $this->toString(); }
 }
-function coopy_DiffRender_0(&$__hx__this, &$_g, &$_g1, &$_g2, &$_g3, &$c, &$cell, &$change_row, &$corner, &$off, &$open, &$render, &$row, &$row_mode, &$rows, &$tt, &$txt) {
+function coopy_DiffRender_0(&$__hx__this, &$_g, &$_g1, &$_g2, &$_g3, &$c, &$cell, &$change_row, &$corner, &$off, &$open, &$render, &$row, &$row_mode, &$tab, &$tt, &$txt) {
 	if($__hx__this->pretty_arrows) {
 		return $cell->pretty_value;
 	} else {

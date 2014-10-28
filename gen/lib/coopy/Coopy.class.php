@@ -97,30 +97,8 @@ class coopy_Coopy {
 		}
 		$this->format_preference = "csv";
 		$csv = new coopy_Csv($this->delim_preference);
-		$data = $csv->parseTable($txt);
-		$h = $data->length;
-		$w = 0;
-		if($h > 0) {
-			$w = _hx_array_get($data, 0)->length;
-		}
-		$output = new coopy_SimpleTable($w, $h);
-		{
-			$_g = 0;
-			while($_g < $h) {
-				$i = $_g++;
-				{
-					$_g1 = 0;
-					while($_g1 < $w) {
-						$j = $_g1++;
-						$val = $data[$i][$j];
-						$output->setCell($j, $i, coopy_Coopy::cellFor($val));
-						unset($val,$j);
-					}
-					unset($_g1);
-				}
-				unset($i);
-			}
-		}
+		$output = new coopy_SimpleTable(0, 0);
+		$csv->parseTable($txt, $output);
 		if($output !== null) {
 			$output->trimBlank();
 		}
@@ -331,8 +309,8 @@ class coopy_Coopy {
 	}
 	public function coopyhx($io) {
 		$args = $io->args();
-		if($args[0] === "--test") {
-			return coopy_Coopy::randomTests();
+		if($args[0] === "--keep") {
+			return coopy_Coopy::keepAround();
 		}
 		$more = true;
 		$output = null;
@@ -668,71 +646,26 @@ class coopy_Coopy {
 		else
 			throw new HException('Unable to call <'.$m.'>');
 	}
-	static $VERSION = "1.1.19";
+	static $VERSION = "1.2.1";
 	static function compareTables($local, $remote, $flags = null) {
-		$ct = new coopy_CompareTable();
 		$comp = new coopy_TableComparisonState();
 		$comp->a = $local;
 		$comp->b = $remote;
 		$comp->compare_flags = $flags;
-		$ct->attach($comp);
+		$ct = new coopy_CompareTable($comp);
 		return $ct;
 	}
 	static function compareTables3($parent, $local, $remote, $flags = null) {
-		$ct = new coopy_CompareTable();
 		$comp = new coopy_TableComparisonState();
 		$comp->p = $parent;
 		$comp->a = $local;
 		$comp->b = $remote;
 		$comp->compare_flags = $flags;
-		$ct->attach($comp);
+		$ct = new coopy_CompareTable($comp);
 		return $ct;
 	}
-	static function randomTests() {
-		$st = new coopy_SimpleTable(15, 6);
-		$tab = $st;
-		haxe_Log::trace("table size is " . _hx_string_rec($tab->get_width(), "") . "x" . _hx_string_rec($tab->get_height(), ""), _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 53, "className" => "coopy.Coopy", "methodName" => "randomTests")));
-		$tab->setCell(3, 4, new coopy_SimpleCell(33));
-		haxe_Log::trace("element is " . Std::string($tab->getCell(3, 4)), _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 55, "className" => "coopy.Coopy", "methodName" => "randomTests")));
-		$compare = new coopy_Compare();
-		$d1 = coopy_ViewedDatum::getSimpleView(new coopy_SimpleCell(10));
-		$d2 = coopy_ViewedDatum::getSimpleView(new coopy_SimpleCell(10));
-		$d3 = coopy_ViewedDatum::getSimpleView(new coopy_SimpleCell(20));
-		$report = new coopy_Report();
-		$compare->compare($d1, $d2, $d3, $report);
-		haxe_Log::trace("report is " . Std::string($report), _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 63, "className" => "coopy.Coopy", "methodName" => "randomTests")));
-		$d2 = coopy_ViewedDatum::getSimpleView(new coopy_SimpleCell(50));
-		$report->clear();
-		$compare->compare($d1, $d2, $d3, $report);
-		haxe_Log::trace("report is " . Std::string($report), _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 67, "className" => "coopy.Coopy", "methodName" => "randomTests")));
-		$d2 = coopy_ViewedDatum::getSimpleView(new coopy_SimpleCell(20));
-		$report->clear();
-		$compare->compare($d1, $d2, $d3, $report);
-		haxe_Log::trace("report is " . Std::string($report), _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 71, "className" => "coopy.Coopy", "methodName" => "randomTests")));
-		$d1 = coopy_ViewedDatum::getSimpleView(new coopy_SimpleCell(20));
-		$report->clear();
-		$compare->compare($d1, $d2, $d3, $report);
-		haxe_Log::trace("report is " . Std::string($report), _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 75, "className" => "coopy.Coopy", "methodName" => "randomTests")));
-		$comp = new coopy_TableComparisonState();
-		$ct = new coopy_CompareTable();
-		$comp->a = $st;
-		$comp->b = $st;
-		$ct->attach($comp);
-		haxe_Log::trace("comparing tables", _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 83, "className" => "coopy.Coopy", "methodName" => "randomTests")));
-		$t1 = new coopy_SimpleTable(3, 2);
-		$t2 = new coopy_SimpleTable(3, 2);
-		$t3 = new coopy_SimpleTable(3, 2);
-		$dt1 = new coopy_ViewedDatum($t1, new coopy_SimpleView());
-		$dt2 = new coopy_ViewedDatum($t2, new coopy_SimpleView());
-		$dt3 = new coopy_ViewedDatum($t3, new coopy_SimpleView());
-		$compare->compare($dt1, $dt2, $dt3, $report);
-		haxe_Log::trace("report is " . Std::string($report), _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 91, "className" => "coopy.Coopy", "methodName" => "randomTests")));
-		$t3->setCell(1, 1, new coopy_SimpleCell("hello"));
-		$compare->compare($dt1, $dt2, $dt3, $report);
-		haxe_Log::trace("report is " . Std::string($report), _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 94, "className" => "coopy.Coopy", "methodName" => "randomTests")));
-		$t1->setCell(1, 1, new coopy_SimpleCell("hello"));
-		$compare->compare($dt1, $dt2, $dt3, $report);
-		haxe_Log::trace("report is " . Std::string($report), _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 97, "className" => "coopy.Coopy", "methodName" => "randomTests")));
+	static function keepAround() {
+		$st = new coopy_SimpleTable(1, 1);
 		$v = new coopy_Viterbi();
 		$td = new coopy_TableDiff(null, null);
 		$idx = new coopy_Index();
@@ -842,7 +775,7 @@ class coopy_Coopy {
 				unset($y);
 			}
 		}
-		haxe_Log::trace($txt, _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 725, "className" => "coopy.Coopy", "methodName" => "show")));
+		haxe_Log::trace($txt, _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 728, "className" => "coopy.Coopy", "methodName" => "show")));
 	}
 	static function jsonify($t) {
 		$workbook = new haxe_ds_StringMap();

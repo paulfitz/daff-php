@@ -10,10 +10,6 @@ class coopy_IndexPair {
 	public $ia;
 	public $ib;
 	public $quality;
-	public function addColumn($i) {
-		$this->ia->addColumn($i);
-		$this->ib->addColumn($i);
-	}
 	public function addColumns($ca, $cb) {
 		$this->ia->addColumn($ca);
 		$this->ib->addColumn($cb);

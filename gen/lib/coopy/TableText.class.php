@@ -1,15 +1,15 @@
 <?php
 
 class coopy_TableText {
-	public function __construct($rows) {
+	public function __construct($tab) {
 		if(!php_Boot::$skip_constructor) {
-		$this->rows = $rows;
-		$this->view = $rows->getCellView();
+		$this->tab = $tab;
+		$this->view = $tab->getCellView();
 	}}
-	public $rows;
+	public $tab;
 	public $view;
 	public function getCellText($x, $y) {
-		return $this->view->toString($this->rows->getCell($x, $y));
+		return $this->view->toString($this->tab->getCell($x, $y));
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

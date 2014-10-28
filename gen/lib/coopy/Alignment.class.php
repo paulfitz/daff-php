@@ -10,8 +10,8 @@ class coopy_Alignment {
 		$this->reference = null;
 		$this->meta = null;
 		$this->order_cache_has_reference = false;
-		$this->ia = 0;
-		$this->ib = 0;
+		$this->ia = -1;
+		$this->ib = -1;
 	}}
 	public $map_a2b;
 	public $map_b2a;
@@ -156,7 +156,7 @@ class coopy_Alignment {
 		while($ct_vp > 0 || $ct_vl > 0 || $ct_vr > 0) {
 			$ct++;
 			if($ct > $max_ct) {
-				haxe_Log::trace("Ordering took too long, something went wrong", _hx_anonymous(array("fileName" => "Alignment.hx", "lineNumber" => 153, "className" => "coopy.Alignment", "methodName" => "toOrder3")));
+				haxe_Log::trace("Ordering took too long, something went wrong", _hx_anonymous(array("fileName" => "Alignment.hx", "lineNumber" => 263, "className" => "coopy.Alignment", "methodName" => "toOrder3")));
 				break;
 			}
 			if($xp >= $hp) {

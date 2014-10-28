@@ -114,7 +114,7 @@ class coopy_Viterbi {
 				$i = $this->index - 1 - $j1;
 				$this->path->set(0, $i, $bestj);
 				if(!($bestj !== -1 && ($bestj >= 0 && $bestj < $this->K))) {
-					haxe_Log::trace("Problem in Viterbi", _hx_anonymous(array("fileName" => "Viterbi.hx", "lineNumber" => 119, "className" => "coopy.Viterbi", "methodName" => "calculatePath")));
+					haxe_Log::trace("Problem in Viterbi", _hx_anonymous(array("fileName" => "Viterbi.hx", "lineNumber" => 167, "className" => "coopy.Viterbi", "methodName" => "calculatePath")));
 				}
 				$bestj = $this->src->get($bestj, $i);
 				unset($j1,$i);

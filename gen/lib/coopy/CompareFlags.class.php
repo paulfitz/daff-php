@@ -26,6 +26,19 @@ class coopy_CompareFlags {
 	public $acts;
 	public $ids;
 	public $columns_to_ignore;
+	public function filter($act, $allow) {
+		if($this->acts === null) {
+			$this->acts = new haxe_ds_StringMap();
+			$this->acts->set("update", !$allow);
+			$this->acts->set("insert", !$allow);
+			$this->acts->set("delete", !$allow);
+		}
+		if(!$this->acts->exists($act)) {
+			return false;
+		}
+		$this->acts->set($act, $allow);
+		return true;
+	}
 	public function allowUpdate() {
 		if($this->acts === null) {
 			return true;
