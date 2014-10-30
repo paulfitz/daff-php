@@ -31,7 +31,8 @@ class coopy_Index {
 				$i = $_g1++;
 				$key = $this->keys[$i];
 				if($key === null) {
-					$this->keys[$i] = $key = $this->toKey($t, $i);
+					$key = $this->toKey($t, $i);
+					$this->keys[$i] = $key;
 				}
 				$item = $this->items->get($key);
 				if($item === null) {

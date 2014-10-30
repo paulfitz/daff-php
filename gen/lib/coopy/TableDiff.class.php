@@ -287,7 +287,8 @@ class coopy_TableDiff {
 			$a = $this->align->getSource();
 			$b = $this->align->getTarget();
 			$p = $a;
-			$rp_header = $ra_header = $this->align->meta->getSourceHeader();
+			$ra_header = $this->align->meta->getSourceHeader();
+			$rp_header = $ra_header;
 			$rb_header = $this->align->meta->getTargetHeader();
 			if($this->align->getIndexColumns() !== null) {
 				$_g3 = 0;

@@ -13,6 +13,9 @@ class Math {
 			return Math::$NaN;
 		}
 	}
+	static function sqrt($v) {
+		return sqrt($v);
+	}
 	static function round($v) {
 		return (int) floor($v + 0.5);
 	}
