@@ -846,9 +846,9 @@ class Enum {
 	}
 }
 
-error_reporting(E_ALL & ~E_STRICT);
-set_error_handler('_hx_error_handler', E_ALL);
-set_exception_handler('_hx_exception_handler');
+//error_reporting(E_ALL & ~E_STRICT);
+//set_error_handler('_hx_error_handler', E_ALL);
+//set_exception_handler('_hx_exception_handler');
 
 php_Boot::$qtypes = array();
 php_Boot::$ttypes = array();
@@ -938,7 +938,7 @@ if(!file_exists($_hx_autload_cache_file)) {
 ';
 	}
 	try {
-		file_put_contents($_hx_autload_cache_file, $_hx_cache_content);
+		//file_put_contents($_hx_autload_cache_file, $_hx_cache_content);
 	} catch(Exception $e) {}
 	unset($_hx_types_array);
 	unset($_hx_cache_content);

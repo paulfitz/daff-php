@@ -36,3 +36,4 @@ for php in `cd $dest; find . -iname "*.php"`; do
     fi
 done
 
+./scripts/tame.sh
