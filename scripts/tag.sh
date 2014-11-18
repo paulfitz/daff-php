@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# optional tweak version
+tweak="$1"
+
 # check version
 version=`php gen/index.php version`
+if [ ! "k$tweak" = "k" ]; then
+    version="$version.$tweak"
+fi
 echo $version
 echo read x
 read x
