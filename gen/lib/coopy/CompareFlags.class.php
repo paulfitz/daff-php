@@ -14,6 +14,7 @@ class coopy_CompareFlags {
 		$this->acts = null;
 		$this->ids = null;
 		$this->columns_to_ignore = null;
+		$this->allow_nested_cells = false;
 	}}
 	public $ordered;
 	public $show_unchanged;
@@ -26,6 +27,7 @@ class coopy_CompareFlags {
 	public $acts;
 	public $ids;
 	public $columns_to_ignore;
+	public $allow_nested_cells;
 	public function filter($act, $allow) {
 		if($this->acts === null) {
 			$this->acts = new haxe_ds_StringMap();

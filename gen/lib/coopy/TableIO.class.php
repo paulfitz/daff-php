@@ -35,5 +35,8 @@ class coopy_TableIO {
 	public function exists($path) {
 		return file_exists($path);
 	}
+	public function openSqliteDatabase($path) {
+		return null;
+	}
 	function __toString() { return 'coopy.TableIO'; }
 }

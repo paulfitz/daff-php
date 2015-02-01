@@ -7,11 +7,17 @@ class coopy_Coopy {
 		$this->format_preference = null;
 		$this->delim_preference = null;
 		$this->output_format = "copy";
+		$this->nested_output = false;
+		$this->order_set = false;
+		$this->order_preference = false;
 	}}
 	public $format_preference;
 	public $delim_preference;
 	public $extern_preference;
 	public $output_format;
+	public $nested_output;
+	public $order_set;
+	public $order_preference;
 	public $io;
 	public $mv;
 	public function checkFormat($name) {
@@ -26,6 +32,9 @@ class coopy_Coopy {
 			case "json":{
 				$this->format_preference = "json";
 			}break;
+			case "ndjson":{
+				$this->format_preference = "ndjson";
+			}break;
 			case "csv":{
 				$this->format_preference = "csv";
 				$this->delim_preference = ",";
@@ -38,11 +47,19 @@ class coopy_Coopy {
 				$this->format_preference = "csv";
 				$this->delim_preference = ";";
 			}break;
+			case "sqlite3":{
+				$this->format_preference = "sqlite";
+			}break;
+			case "sqlite":{
+				$this->format_preference = "sqlite";
+			}break;
 			default:{
 				$ext = "";
 			}break;
 			}
 		}
+		$this->nested_output = $this->format_preference === "json" || $this->format_preference === "ndjson";
+		$this->order_preference = !$this->nested_output;
 		return $ext;
 	}
 	public function setFormat($name) {
@@ -56,12 +73,21 @@ class coopy_Coopy {
 		}
 		$txt = "";
 		$this->checkFormat($name);
-		if($this->format_preference !== "json") {
+		if($this->format_preference === "csv") {
 			$csv = new coopy_Csv($this->delim_preference);
 			$txt = $csv->renderTable($t);
 		} else {
-			$value = coopy_Coopy::jsonify($t);
-			$txt = haxe_Json::phpJsonEncode($value, null, null);
+			if($this->format_preference === "ndjson") {
+				$txt = _hx_deref(new coopy_Ndjson($t))->render();
+			} else {
+				if($this->format_preference === "sqlite") {
+					$this->io->writeStderr("! Cannot yet output to sqlite, aborting\x0A");
+					return false;
+				} else {
+					$value = coopy_Coopy::jsonify($t);
+					$txt = haxe_format_JsonPrinter::hprint($value, null, "  ");
+				}
+			}
 		}
 		return $this->saveText($name, $txt);
 	}
@@ -76,15 +102,40 @@ class coopy_Coopy {
 	public function loadTable($name) {
 		$txt = $this->io->getContent($name);
 		$ext = $this->checkFormat($name);
+		if($ext === "sqlite") {
+			$sql = $this->io->openSqliteDatabase($name);
+			if($sql === null) {
+				$this->io->writeStderr("! Cannot open database, aborting\x0A");
+				return null;
+			}
+			$helper = new coopy_SqliteHelper();
+			$names = $helper->getTableNames($sql);
+			if($names === null) {
+				$this->io->writeStderr("! Cannot find database tables, aborting\x0A");
+				return null;
+			}
+			if($names->length === 0) {
+				$this->io->writeStderr("! No tables in database, aborting\x0A");
+				return null;
+			}
+			$tab = new coopy_SqlTable($sql, new coopy_SqlTableName($names[0], null), $helper);
+			return $tab;
+		}
+		if($ext === "ndjson") {
+			$t = new coopy_SimpleTable(0, 0);
+			$ndjson = new coopy_Ndjson($t);
+			$ndjson->parse($txt);
+			return $t;
+		}
 		if($ext === "json" || $ext === "") {
 			try {
-				$json = haxe_Json::phpJsonDecode($txt);
+				$json = _hx_deref(new haxe_format_JsonParser($txt))->parseRec();
 				$this->format_preference = "json";
-				$t = coopy_Coopy::jsonToTable($json);
-				if($t === null) {
+				$t1 = coopy_Coopy::jsonToTable($json);
+				if($t1 === null) {
 					throw new HException("JSON failed");
 				}
-				return $t;
+				return $t1;
 			}catch(Exception $__hx__e) {
 				$_ex_ = ($__hx__e instanceof HException) ? $__hx__e->e : $__hx__e;
 				$e = $_ex_;
@@ -395,48 +446,65 @@ class coopy_Coopy {
 														$args->splice($i, 1);
 														break;
 													} else {
-														if($tag === "--color") {
+														if($tag === "--unordered") {
 															$more = true;
-															$color = true;
+															$flags->ordered = false;
+															$flags->unchanged_context = 0;
+															$this->order_set = true;
 															$args->splice($i, 1);
 															break;
 														} else {
-															if($tag === "--input-format") {
+															if($tag === "--ordered") {
 																$more = true;
-																$this->setFormat($args[$i + 1]);
-																$args->splice($i, 2);
+																$flags->ordered = true;
+																$this->order_set = true;
+																$args->splice($i, 1);
 																break;
 															} else {
-																if($tag === "--output-format") {
+																if($tag === "--color") {
 																	$more = true;
-																	$this->output_format = $args[$i + 1];
-																	$args->splice($i, 2);
+																	$color = true;
+																	$args->splice($i, 1);
 																	break;
 																} else {
-																	if($tag === "--id") {
+																	if($tag === "--input-format") {
 																		$more = true;
-																		if($flags->ids === null) {
-																			$flags->ids = new _hx_array(array());
-																		}
-																		$flags->ids->push($args[$i + 1]);
+																		$this->setFormat($args[$i + 1]);
 																		$args->splice($i, 2);
 																		break;
 																	} else {
-																		if($tag === "--ignore") {
+																		if($tag === "--output-format") {
 																			$more = true;
-																			if($flags->columns_to_ignore === null) {
-																				$flags->columns_to_ignore = new _hx_array(array());
-																			}
-																			$flags->columns_to_ignore->push($args[$i + 1]);
+																			$this->output_format = $args[$i + 1];
 																			$args->splice($i, 2);
 																			break;
 																		} else {
-																			if($tag === "--index") {
+																			if($tag === "--id") {
 																				$more = true;
-																				$flags->always_show_order = true;
-																				$flags->never_show_order = false;
-																				$args->splice($i, 1);
+																				if($flags->ids === null) {
+																					$flags->ids = new _hx_array(array());
+																				}
+																				$flags->ids->push($args[$i + 1]);
+																				$args->splice($i, 2);
 																				break;
+																			} else {
+																				if($tag === "--ignore") {
+																					$more = true;
+																					if($flags->columns_to_ignore === null) {
+																						$flags->columns_to_ignore = new _hx_array(array());
+																					}
+																					$flags->columns_to_ignore->push($args[$i + 1]);
+																					$args->splice($i, 2);
+																					break;
+																				} else {
+																					if($tag === "--index") {
+																						$more = true;
+																						$flags->always_show_order = true;
+																						$flags->never_show_order = false;
+																						$args->splice($i, 1);
+																						break;
+																					}
+																				}
 																			}
 																		}
 																	}
@@ -491,7 +559,7 @@ class coopy_Coopy {
 			$io->writeStderr("Call as:\x0A");
 			$io->writeStderr("  daff [--color] [--output OUTPUT.csv] a.csv b.csv\x0A");
 			$io->writeStderr("  daff [--output OUTPUT.csv] parent.csv a.csv b.csv\x0A");
-			$io->writeStderr("  daff [--output OUTPUT.jsonbook] a.jsonbook b.jsonbook\x0A");
+			$io->writeStderr("  daff [--output OUTPUT.ndjson] a.ndjson b.ndjson\x0A");
 			$io->writeStderr("  daff patch [--inplace] [--output OUTPUT.csv] a.csv patch.csv\x0A");
 			$io->writeStderr("  daff merge [--inplace] [--output OUTPUT.csv] parent.csv a.csv b.csv\x0A");
 			$io->writeStderr("  daff trim [--output OUTPUT.csv] source.csv\x0A");
@@ -504,14 +572,16 @@ class coopy_Coopy {
 			$io->writeStderr("\x0A");
 			$io->writeStderr("If you need more control, here is the full list of flags:\x0A");
 			$io->writeStderr("  daff diff [--output OUTPUT.csv] [--context NUM] [--all] [--act ACT] a.csv b.csv\x0A");
-			$io->writeStderr("     --id:          specify column to use as primary key (repeat for multi-column key)\x0A");
-			$io->writeStderr("     --ignore:      specify column to ignore completely (can repeat)\x0A");
+			$io->writeStderr("     --act ACT:     show only a certain kind of change (update, insert, delete)\x0A");
+			$io->writeStderr("     --all:         do not prune unchanged rows\x0A");
 			$io->writeStderr("     --color:       highlight changes with terminal colors\x0A");
 			$io->writeStderr("     --context NUM: show NUM rows of context\x0A");
-			$io->writeStderr("     --all:         do not prune unchanged rows\x0A");
-			$io->writeStderr("     --act ACT:     show only a certain kind of change (update, insert, delete)\x0A");
+			$io->writeStderr("     --id:          specify column to use as primary key (repeat for multi-column key)\x0A");
+			$io->writeStderr("     --ignore:      specify column to ignore completely (can repeat)\x0A");
 			$io->writeStderr("     --input-format [csv|tsv|ssv|json]: set format to expect for input\x0A");
+			$io->writeStderr("     --ordered:     assume row order is meaningful (default for CSV)\x0A");
 			$io->writeStderr("     --output-format [csv|tsv|ssv|json|copy]: set format for output\x0A");
+			$io->writeStderr("     --unordered:   assume row order is meaningless (default for json formats)\x0A");
 			$io->writeStderr("\x0A");
 			$io->writeStderr("  daff diff --git path old-file old-hex old-mode new-file new-hex new-mode\x0A");
 			$io->writeStderr("     --git:         process arguments provided by git to diff drivers\x0A");
@@ -581,6 +651,13 @@ class coopy_Coopy {
 		}
 		$ok = true;
 		if($cmd1 === "diff") {
+			if(!$this->order_set) {
+				$flags->ordered = $this->order_preference;
+				if(!$flags->ordered) {
+					$flags->unchanged_context = 0;
+				}
+			}
+			$flags->allow_nested_cells = $this->nested_output;
 			$ct1 = coopy_Coopy::compareTables3($parent, $a, $b, $flags);
 			$align = $ct1->align();
 			$td = new coopy_TableDiff($align, $flags);
@@ -646,7 +723,7 @@ class coopy_Coopy {
 		else
 			throw new HException('Unable to call <'.$m.'>');
 	}
-	static $VERSION = "1.2.3";
+	static $VERSION = "1.2.4";
 	static function compareTables($local, $remote, $flags = null) {
 		$comp = new coopy_TableComparisonState();
 		$comp->a = $local;
@@ -674,6 +751,7 @@ class coopy_Coopy {
 		$hp = new coopy_HighlightPatch(null, null);
 		$csv = new coopy_Csv(null);
 		$tm = new coopy_TableModifier(null);
+		$sc = new coopy_SqlCompare(null, null, null);
 		return 0;
 	}
 	static function cellFor($x) {
@@ -775,7 +853,7 @@ class coopy_Coopy {
 				unset($y);
 			}
 		}
-		haxe_Log::trace($txt, _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 728, "className" => "coopy.Coopy", "methodName" => "show")));
+		haxe_Log::trace($txt, _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 794, "className" => "coopy.Coopy", "methodName" => "show")));
 	}
 	static function jsonify($t) {
 		$workbook = new haxe_ds_StringMap();
@@ -793,11 +871,7 @@ class coopy_Coopy {
 					while($_g1 < $w) {
 						$x = $_g1++;
 						$v = $t->getCell($x, $y);
-						if($v !== null) {
-							$row->push(_hx_string_call($v, "toString", array()));
-						} else {
-							$row->push(null);
-						}
+						$row->push($v);
 						unset($x,$v);
 					}
 					unset($_g1);

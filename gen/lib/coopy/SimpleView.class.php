@@ -23,5 +23,26 @@ class coopy_SimpleView implements coopy_View{
 	public function toDatum($x) {
 		return $x;
 	}
+	public function makeHash() {
+		return new haxe_ds_StringMap();
+	}
+	public function hashSet(&$h, $str, $d) {
+		$hh = $h;
+		{
+			$value = $d;
+			$hh->set($str, $value);
+		}
+	}
+	public function hashExists($h, $str) {
+		$hh = $h;
+		return $hh->exists($str);
+	}
+	public function hashGet($h, $str) {
+		$hh = $h;
+		return $hh->get($str);
+	}
+	public function isHash($h) {
+		return Std::is($h, _hx_qtype("haxe.ds.StringMap"));
+	}
 	function __toString() { return $this->toString(); }
 }

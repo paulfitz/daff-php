@@ -6,10 +6,12 @@ class coopy_HighlightPatch implements coopy_Row{
 		$this->source = $source;
 		$this->patch = $patch;
 		$this->view = $patch->getCellView();
+		$this->sourceView = $source->getCellView();
 	}}
 	public $source;
 	public $patch;
 	public $view;
+	public $sourceView;
 	public $csv;
 	public $header;
 	public $headerPre;
@@ -308,7 +310,7 @@ class coopy_HighlightPatch implements coopy_Row{
 	public function checkAct() {
 		$act = $this->getString($this->rcOffset);
 		if($this->rowInfo->value !== $act) {
-			coopy_DiffRender::examineCell(0, 0, $act, "", $act, "", $this->rowInfo);
+			coopy_DiffRender::examineCell(0, 0, $this->view, $act, "", $act, "", $this->rowInfo, null);
 		}
 	}
 	public function getPreString($txt) {
@@ -316,7 +318,7 @@ class coopy_HighlightPatch implements coopy_Row{
 		if(!$this->rowInfo->updated) {
 			return $txt;
 		}
-		coopy_DiffRender::examineCell(0, 0, $txt, "", $this->rowInfo->value, "", $this->cellInfo);
+		coopy_DiffRender::examineCell(0, 0, $this->view, $txt, "", $this->rowInfo->value, "", $this->cellInfo, null);
 		if(!$this->cellInfo->updated) {
 			return $txt;
 		}
@@ -593,7 +595,7 @@ class coopy_HighlightPatch implements coopy_Row{
 								unset($c1);
 								$c1 = $__hx__it->next();
 								$txt = $this->view->toString($this->patch->getCell($c1, $mod1->patchRow));
-								coopy_DiffRender::examineCell(0, 0, $txt, "", $this->rowInfo->value, "", $this->cellInfo);
+								coopy_DiffRender::examineCell(0, 0, $this->view, $txt, "", $this->rowInfo->value, "", $this->cellInfo, null);
 								if(!$this->cellInfo->updated) {
 									continue;
 								}

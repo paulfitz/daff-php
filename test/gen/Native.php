@@ -59,5 +59,8 @@ class harness_Native {
 	static function hexit($v) {
 		Sys::hexit($v);
 	}
+	static function getHashKey($h, $k) {
+		return $h[$k];
+	}
 	function __toString() { return 'harness.Native'; }
 }

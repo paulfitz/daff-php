@@ -46,18 +46,21 @@ class BasicTest extends DaffTestCase {
 
 		$expected = array(
 			'table' => array(),
+            'thead' => array(),
 				array('tr' => array('class' => 'spec')),
 					array('td' => true), '!', '/td',
 					array('td' => true), '/td',
 					array('td' => array('class' => 'add')), '+++', '/td',
 					array('td' => true), '/td',
 				'/tr',
-				array('tr' => true),
+				array('tr' => array('class' => 'header')),
 					array('th' => true), '@@', '/th',
 					array('th' => true), 'Country', '/th',
 					array('th' => array('class' => 'add')), 'Code', '/th',
 					array('th' => true), 'Capital', '/th',
 				'/tr',
+            '/thead',
+            'tbody' => array(),
 				array('tr' => true),
 					array('td' => true), '+', '/td',
 					array('td' => true), 'Ireland', '/td',
@@ -82,6 +85,7 @@ class BasicTest extends DaffTestCase {
 					array('td' => array('class' => 'add')), 'de', '/td',
 					array('td' => true), 'Berlin', '/td',
 				'/tr',
+			'/tbody',
 			'/table',
 		);
 		static::assertHtml($expected, $result);
@@ -102,18 +106,21 @@ class BasicTest extends DaffTestCase {
 
 		$expected = array(
 			'table' => array(),
+            'thead' => array(),
 				array('tr' => array('class' => 'spec')),
 					array('td' => true), '!', '/td',
 					array('td' => array('class' => 'add')), '+++', '/td',
 					array('td' => array('class' => 'add')), '+++', '/td',
 					array('td' => array('class' => 'add')), '+++', '/td',
 				'/tr',
-				array('tr' => true),
+                array('tr' => array('class' => 'header')),
 					array('th' => true), '@@', '/th',
 					array('th' => array('class' => 'add')), 'Country', '/th',
 					array('th' => array('class' => 'add')), 'Code', '/th',
 					array('th' => array('class' => 'add')), 'Capital', '/th',
 				'/tr',
+            '/thead',
+            'tbody' => array(),
 				array('tr' => array('class' => 'add')),
 					array('td' => true), '+++', '/td',
 					array('td' => array('class' => 'add')), 'Country', '/td',
@@ -126,6 +133,7 @@ class BasicTest extends DaffTestCase {
 					array('td' => array('class' => 'add')), 'ie', '/td',
 					array('td' => array('class' => 'add')), 'Dublin', '/td',
 				'/tr',
+            '/tbody',
 			'/table',
 		);
 		static::assertHtml($expected, $result);
@@ -146,18 +154,21 @@ class BasicTest extends DaffTestCase {
 
 		$expected = array(
 			'table' => array(),
+            'thead' => array(),
 				array('tr' => array('class' => 'spec')),
 					array('td' => true), '!', '/td',
 					array('td' => array('class' => 'remove')), '---', '/td',
 					array('td' => array('class' => 'remove')), '---', '/td',
 					array('td' => array('class' => 'remove')), '---', '/td',
 				'/tr',
-				array('tr' => true),
+                array('tr' => array('class' => 'header')),
 					array('th' => true), '@@', '/th',
 					array('th' => array('class' => 'remove')), 'Country', '/th',
 					array('th' => array('class' => 'remove')), 'Code', '/th',
 					array('th' => array('class' => 'remove')), 'Capital', '/th',
 				'/tr',
+            '/thead',
+            'tbody' => array(),
 				array('tr' => array('class' => 'remove')),
 					array('td' => true), '---', '/td',
 					array('td' => array('class' => 'remove')), 'Country', '/td',
@@ -170,6 +181,7 @@ class BasicTest extends DaffTestCase {
 					array('td' => array('class' => 'remove')), 'ie', '/td',
 					array('td' => array('class' => 'remove')), 'Dublin', '/td',
 				'/tr',
+            '/tbody',
 			'/table',
 		);
 		static::assertHtml($expected, $result);

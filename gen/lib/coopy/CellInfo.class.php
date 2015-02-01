@@ -2,6 +2,7 @@
 
 class coopy_CellInfo {
 	public function __construct() {}
+	public $raw;
 	public $value;
 	public $pretty_value;
 	public $category;

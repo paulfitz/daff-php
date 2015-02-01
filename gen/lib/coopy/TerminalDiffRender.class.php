@@ -6,7 +6,7 @@ class coopy_TerminalDiffRender {
 		$this->align_columns = true;
 	}}
 	public $codes;
-	public $tt;
+	public $t;
 	public $csv;
 	public $v;
 	public $align_columns;
@@ -19,8 +19,8 @@ class coopy_TerminalDiffRender {
 		$w = $t->get_width();
 		$h = $t->get_height();
 		$txt = "";
+		$this->t = $t;
 		$this->v = $t->getCellView();
-		$this->tt = new coopy_TableText($t);
 		$this->codes = new haxe_ds_StringMap();
 		$this->codes->set("header", "\x1B[0;1m");
 		$this->codes->set("spec", "\x1B[35;1m");
@@ -68,17 +68,15 @@ class coopy_TerminalDiffRender {
 				unset($y);
 			}
 		}
-		$this->tt = null;
+		$this->t = null;
+		$this->v = null;
 		$this->csv = null;
 		$this->codes = null;
 		return $txt;
 	}
 	public function getText($x, $y, $color) {
-		$val = $this->tt->getCellText($x, $y);
-		if($val === null) {
-			$val = "";
-		}
-		$cell = coopy_DiffRender::renderCell($this->tt, $x, $y);
+		$val = $this->t->getCell($x, $y);
+		$cell = coopy_DiffRender::renderCell($this->t, $this->v, $x, $y);
 		if($color) {
 			$code = null;
 			if($cell->category !== null) {
@@ -94,11 +92,11 @@ class coopy_TerminalDiffRender {
 				if($cell->rvalue !== null) {
 					$val = _hx_string_or_null($this->codes->get("remove")) . _hx_string_or_null($cell->lvalue) . _hx_string_or_null($this->codes->get("modify")) . _hx_string_or_null($cell->pretty_separator) . _hx_string_or_null($this->codes->get("add")) . _hx_string_or_null($cell->rvalue) . _hx_string_or_null($this->codes->get("done"));
 					if($cell->pvalue !== null) {
-						$val = _hx_string_or_null($this->codes->get("conflict")) . _hx_string_or_null($cell->pvalue) . _hx_string_or_null($this->codes->get("modify")) . _hx_string_or_null($cell->pretty_separator) . _hx_string_or_null($val);
+						$val = _hx_string_or_null($this->codes->get("conflict")) . _hx_string_or_null($cell->pvalue) . _hx_string_or_null($this->codes->get("modify")) . _hx_string_or_null($cell->pretty_separator) . Std::string($val);
 					}
 				} else {
 					$val = $cell->pretty_value;
-					$val = _hx_string_or_null($code) . _hx_string_or_null($val) . _hx_string_or_null($this->codes->get("done"));
+					$val = _hx_string_or_null($code) . Std::string($val) . _hx_string_or_null($this->codes->get("done"));
 				}
 			}
 		} else {
@@ -110,7 +108,6 @@ class coopy_TerminalDiffRender {
 		$w = $t->get_width();
 		$h = $t->get_height();
 		$v = $t->getCellView();
-		$tt = new coopy_TableText($t);
 		$csv = new coopy_Csv(null);
 		$sizes = new _hx_array(array());
 		$row = -1;

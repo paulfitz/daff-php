@@ -82,6 +82,16 @@ class coopy_Alignment {
 		}
 		return $this->order_cache;
 	}
+	public function addToOrder($l, $r, $p = null) {
+		if($p === null) {
+			$p = -2;
+		}
+		if($this->order_cache === null) {
+			$this->order_cache = new coopy_Ordering();
+		}
+		$this->order_cache->add($l, $r, $p);
+		$this->order_cache_has_reference = $p !== -2;
+	}
 	public function getSource() {
 		return $this->ta;
 	}
@@ -156,7 +166,7 @@ class coopy_Alignment {
 		while($ct_vp > 0 || $ct_vl > 0 || $ct_vr > 0) {
 			$ct++;
 			if($ct > $max_ct) {
-				haxe_Log::trace("Ordering took too long, something went wrong", _hx_anonymous(array("fileName" => "Alignment.hx", "lineNumber" => 263, "className" => "coopy.Alignment", "methodName" => "toOrder3")));
+				haxe_Log::trace("Ordering took too long, something went wrong", _hx_anonymous(array("fileName" => "Alignment.hx", "lineNumber" => 277, "className" => "coopy.Alignment", "methodName" => "toOrder3")));
 				break;
 			}
 			if($xp >= $hp) {

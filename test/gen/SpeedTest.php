@@ -10,7 +10,7 @@ class harness_SpeedTest extends haxe_unit_TestCase {
 	public function setup() {
 		$this->data1 = (new _hx_array(array()));
 		$this->data2 = (new _hx_array(array()));
-		$scale = 10000;
+		$scale = 1000;
 		$cols = 5;
 		$this->data1[$scale - 1] = null;
 		$this->data2[$scale - 1] = null;

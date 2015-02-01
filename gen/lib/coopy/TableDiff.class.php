@@ -228,7 +228,11 @@ class coopy_TableDiff {
 			return false;
 		}
 		if($this->builder === null) {
-			$this->builder = new coopy_FlatCellBuilder();
+			if($this->flags->allow_nested_cells) {
+				$this->builder = new coopy_NestedCellBuilder();
+			} else {
+				$this->builder = new coopy_FlatCellBuilder();
+			}
 		}
 		$output->resize(0, 0);
 		$output->clear();
@@ -501,12 +505,12 @@ class coopy_TableDiff {
 					$j3 = $_g110++;
 					$cunit2 = $column_units[$j3];
 					if($cunit2->r >= 0) {
-						if($b->get_height() > 0) {
+						if($b->get_height() !== 0) {
 							$output->setCell($j3 + 1, $at1, $b->getCell($cunit2->r, $rb_header));
 						}
 					} else {
 						if($cunit2->lp() >= 0) {
-							if($p->get_height() > 0) {
+							if($p->get_height() !== 0) {
 								$output->setCell($j3 + 1, $at1, $p->getCell($cunit2->lp(), $rp_header));
 							}
 						}
@@ -816,6 +820,7 @@ class coopy_TableDiff {
 					$i7 = $_g114++;
 					$unit2 = $row_map->get($i7);
 					if($unit2 === null) {
+						$output->setCell(0, $i7, "");
 						continue;
 					}
 					$output->setCell(0, $i7, $this->builder->links($unit2));
@@ -840,6 +845,7 @@ class coopy_TableDiff {
 					$i9 = $_g116++;
 					$unit3 = $col_map->get($i9 - 1);
 					if($unit3 === null) {
+						$output->setCell($i9, 0, "");
 						continue;
 					}
 					$output->setCell($i9, 0, $this->builder->links($unit3));

@@ -58,6 +58,40 @@ class harness_BasicTest extends haxe_unit_TestCase {
 		$patcher->apply();
 		$this->assertEquals(0, $table3->get_height(), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 69, "className" => "harness.BasicTest", "methodName" => "testEmpty")));
 	}
+	public function testNestedOutput() {
+		$table1 = harness_Native::table($this->data1);
+		$table2 = harness_Native::table($this->data2);
+		$alignment = coopy_Coopy::compareTables($table1, $table2, null)->align();
+		$data_diff = (new _hx_array(array()));
+		$table_diff = harness_Native::table($data_diff);
+		$flags = new coopy_CompareFlags();
+		$flags->allow_nested_cells = true;
+		$highlighter = new coopy_TableDiff($alignment, $flags);
+		$highlighter->hilite($table_diff);
+		$update = $table_diff->getCell(3, 4);
+		$view = $table_diff->getCellView();
+		$this->assertTrue($view->isHash($update), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 85, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
+		$this->assertEquals("Barcelona", $view->hashGet($update, "before"), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 86, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
+		$this->assertEquals("Madrid", $view->hashGet($update, "after"), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 87, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
+		$this->assertEquals("Barcelona", harness_Native::getHashKey($update, "before"), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 88, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
+		$this->assertEquals("Madrid", harness_Native::getHashKey($update, "after"), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 89, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
+	}
+	public function testNestedOutputHtml() {
+		$table1 = harness_Native::table($this->data1);
+		$table2 = harness_Native::table($this->data2);
+		$alignment = coopy_Coopy::compareTables($table1, $table2, null)->align();
+		$table_diff1 = harness_Native::table((new _hx_array(array())));
+		$table_diff2 = harness_Native::table((new _hx_array(array())));
+		$flags = new coopy_CompareFlags();
+		$highlighter1 = new coopy_TableDiff($alignment, $flags);
+		$highlighter1->hilite($table_diff1);
+		$flags->allow_nested_cells = true;
+		$highlighter2 = new coopy_TableDiff($alignment, $flags);
+		$highlighter2->hilite($table_diff2);
+		$render1 = _hx_deref(new coopy_DiffRender())->render($table_diff1)->html();
+		$render2 = _hx_deref(new coopy_DiffRender())->render($table_diff2)->html();
+		$this->assertEquals($render1, $render2, _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 106, "className" => "harness.BasicTest", "methodName" => "testNestedOutputHtml")));
+	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);
