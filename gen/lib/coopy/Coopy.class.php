@@ -723,7 +723,7 @@ class coopy_Coopy {
 		else
 			throw new HException('Unable to call <'.$m.'>');
 	}
-	static $VERSION = "1.2.4";
+	static $VERSION = "1.2.5";
 	static function compareTables($local, $remote, $flags = null) {
 		$comp = new coopy_TableComparisonState();
 		$comp->a = $local;

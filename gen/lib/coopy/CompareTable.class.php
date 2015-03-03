@@ -605,6 +605,12 @@ function coopy_CompareTable_0(&$N, &$a, &$align, &$av, &$b, &$column_order, &$co
 		if($a1->a[1] > $b1[1]) {
 			return -1;
 		}
+		if($a1->a[0] > $b1[0]) {
+			return 1;
+		}
+		if($a1->a[0] < $b1[0]) {
+			return -1;
+		}
 		return 0;
 	}
 }

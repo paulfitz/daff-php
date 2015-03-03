@@ -363,6 +363,11 @@ class coopy_HighlightPatch implements coopy_Row{
 		$offset = 0;
 		$last = -1;
 		$target = 0;
+		if($rmods->length > 0) {
+			if(_hx_array_get($rmods, 0)->sourcePrevRow === -1) {
+				$last = 0;
+			}
+		}
 		{
 			$_g = 0;
 			while($_g < $rmods->length) {
@@ -478,8 +483,10 @@ class coopy_HighlightPatch implements coopy_Row{
 					$i = $_g1++;
 					$u = $from_unit->get($i);
 					if($u !== null) {
-						$meta_from_unit->set($u, $i);
-						$i;
+						{
+							$meta_from_unit->set($u, $i);
+							$i;
+						}
 					} else {
 						$starts->push($i);
 					}
