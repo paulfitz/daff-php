@@ -56,6 +56,30 @@ class harness_SmallTableTest extends haxe_unit_TestCase {
 		$patcher->apply();
 		$this->assertTrue(coopy_SimpleTable::tableIsSimilar($table3, $table2), _hx_anonymous(array("fileName" => "SmallTableTest.hx", "lineNumber" => 67, "className" => "harness.SmallTableTest", "methodName" => "testIssueDaffPhp15")));
 	}
+	public function testIssueDaffPhp16() {
+		$objs = (new _hx_array(array("xxx", 1)));
+		{
+			$_g = 0;
+			while($_g < $objs->length) {
+				$o = $objs[$_g];
+				++$_g;
+				$e1 = (new _hx_array(array((new _hx_array(array("col1", "col2", "col3", "col4", "col5"))), (new _hx_array(array(0, 0, 0, 0, 0))))));
+				$e2 = (new _hx_array(array((new _hx_array(array("col1", "col2", "col3", "col4", "col5"))), (new _hx_array(array($o, 0, 0, 0, 0))))));
+				$table1 = harness_Native::table($e1);
+				$table2 = harness_Native::table($e2);
+				$data_diff = (new _hx_array(array()));
+				$table_diff = harness_Native::table($data_diff);
+				$flags = new coopy_CompareFlags();
+				$alignment = coopy_Coopy::compareTables($table1, $table2, $flags)->align();
+				$highlighter = new coopy_TableDiff($alignment, $flags);
+				$highlighter->hilite($table_diff);
+				$this->assertEquals($table_diff->get_height(), 2, _hx_anonymous(array("fileName" => "SmallTableTest.hx", "lineNumber" => 87, "className" => "harness.SmallTableTest", "methodName" => "testIssueDaffPhp16")));
+				$this->assertEquals($table_diff->getCell(0, 1), "->", _hx_anonymous(array("fileName" => "SmallTableTest.hx", "lineNumber" => 88, "className" => "harness.SmallTableTest", "methodName" => "testIssueDaffPhp16")));
+				$this->assertEquals($table_diff->getCell(1, 1), "0->" . Std::string($o), _hx_anonymous(array("fileName" => "SmallTableTest.hx", "lineNumber" => 89, "className" => "harness.SmallTableTest", "methodName" => "testIssueDaffPhp16")));
+				unset($table_diff,$table2,$table1,$o,$highlighter,$flags,$e2,$e1,$data_diff,$alignment);
+			}
+		}
+	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);
