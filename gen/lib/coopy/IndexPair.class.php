@@ -6,17 +6,20 @@ class coopy_IndexPair {
 		$this->ia = new coopy_Index();
 		$this->ib = new coopy_Index();
 		$this->quality = 0;
+		$this->hdr = 0;
 	}}
 	public $ia;
 	public $ib;
+	public $hdr;
 	public $quality;
 	public function addColumns($ca, $cb) {
 		$this->ia->addColumn($ca);
 		$this->ib->addColumn($cb);
 	}
-	public function indexTables($a, $b) {
-		$this->ia->indexTable($a);
-		$this->ib->indexTable($b);
+	public function indexTables($a, $b, $hdr) {
+		$this->ia->indexTable($a, $hdr);
+		$this->ib->indexTable($b, $hdr);
+		$this->hdr = $hdr;
 		$good = 0;
 		if(null == $this->ia->items) throw new HException('null iterable');
 		$__hx__it = $this->ia->items->keys();

@@ -206,6 +206,10 @@ class coopy_Mover {
 }
 function coopy_Mover_0(&$blk, &$blk_dest_loc, &$blk_len, &$blk_src_loc, &$blks, &$ct, &$dest, &$in_cursor, &$in_src, &$len, &$next, &$out_cursor, &$src, &$v, $a, $b) {
 	{
-		return $blk_len->get($b) - $blk_len->get($a);
+		$diff = $blk_len->get($b) - $blk_len->get($a);
+		if($diff !== 0) {
+			return $diff;
+		}
+		return $a - $b;
 	}
 }

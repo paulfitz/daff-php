@@ -38,6 +38,7 @@ class coopy_HighlightPatch implements coopy_Row{
 	public $colPermutation;
 	public $colPermutationRev;
 	public $haveDroppedColumns;
+	public $headerRow;
 	public function reset() {
 		$this->header = new haxe_ds_IntMap();
 		$this->headerPre = new haxe_ds_StringMap();
@@ -62,6 +63,7 @@ class coopy_HighlightPatch implements coopy_Row{
 		$this->colPermutation = null;
 		$this->colPermutationRev = null;
 		$this->haveDroppedColumns = false;
+		$this->headerRow = 0;
 	}
 	public function apply() {
 		$this->reset();
@@ -89,6 +91,7 @@ class coopy_HighlightPatch implements coopy_Row{
 				unset($str,$r);
 			}
 		}
+		$this->headerRow = $this->rcOffset;
 		{
 			$_g11 = 0;
 			$_g2 = $this->patch->get_height();
@@ -144,10 +147,12 @@ class coopy_HighlightPatch implements coopy_Row{
 		$code = $this->actions[$r];
 		if($r === 0 && $this->rcOffset > 0) {} else {
 			if($code === "@@") {
+				$this->headerRow = $r;
 				$this->applyHeader();
 				$this->applyAction("@@");
 			} else {
 				if($code === "!") {
+					$this->headerRow = $r;
 					$this->applyMeta();
 				} else {
 					if($code === "+++") {
@@ -289,7 +294,12 @@ class coopy_HighlightPatch implements coopy_Row{
 		}
 		if($mod->add) {
 			if($this->actions[$this->currentRow - 1] !== "+++") {
-				$mod->sourcePrevRow = $this->lookUp(-1);
+				if($this->actions[$this->currentRow - 1] === "@@") {
+					$mod->sourcePrevRow = 0;
+					$this->lastSourceRow = 0;
+				} else {
+					$mod->sourcePrevRow = $this->lookUp(-1);
+				}
 			}
 			$mod->sourceRow = $mod->sourcePrevRow;
 			if($mod->sourceRow !== -1) {
@@ -330,6 +340,9 @@ class coopy_HighlightPatch implements coopy_Row{
 			return "NOT_FOUND";
 		}
 		return $this->getPreString($this->getString($at));
+	}
+	public function isPreamble() {
+		return $this->currentRow <= $this->headerRow;
 	}
 	public function sortMods($a, $b) {
 		if($b->code === "@@" && $a->code !== "@@") {
@@ -403,7 +416,11 @@ class coopy_HighlightPatch implements coopy_Row{
 						$last++;
 					}
 				} else {
-					$last = -1;
+					if($mod->add && $mod->sourceNextRow !== -1) {
+						$last = $mod->sourceNextRow + $mod->sourceRowOffset;
+					} else {
+						$last = -1;
+					}
 				}
 				unset($mod);
 			}
@@ -499,7 +516,7 @@ class coopy_HighlightPatch implements coopy_Row{
 				$_g2 = 0;
 				while($_g2 < $dim) {
 					$i1 = $_g2++;
-					if($meta_from_unit->exists($logical)) {
+					if($logical !== null && $meta_from_unit->exists($logical)) {
 						$cursor = $meta_from_unit->get($logical);
 					} else {
 						$cursor = null;

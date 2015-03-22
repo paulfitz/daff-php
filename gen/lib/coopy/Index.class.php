@@ -8,6 +8,7 @@ class coopy_Index {
 		$this->keys = new _hx_array(array());
 		$this->top_freq = 0;
 		$this->height = 0;
+		$this->hdr = 0;
 	}}
 	public $items;
 	public $keys;
@@ -16,11 +17,13 @@ class coopy_Index {
 	public $cols;
 	public $v;
 	public $indexed_table;
+	public $hdr;
 	public function addColumn($i) {
 		$this->cols->push($i);
 	}
-	public function indexTable($t) {
+	public function indexTable($t, $hdr) {
 		$this->indexed_table = $t;
+		$this->hdr = $hdr;
 		if($this->keys->length !== $t->get_height() && $t->get_height() > 0) {
 			$this->keys[$t->get_height() - 1] = null;
 		}
@@ -56,7 +59,12 @@ class coopy_Index {
 		$this->height = $t->get_height();
 	}
 	public function toKey($t, $i) {
-		$wide = "";
+		$wide = null;
+		if($i < $this->hdr) {
+			$wide = "_";
+		} else {
+			$wide = "";
+		}
 		if($this->v === null) {
 			$this->v = $t->getCellView();
 		}
@@ -80,7 +88,12 @@ class coopy_Index {
 		return $wide;
 	}
 	public function toKeyByContent($row) {
-		$wide = "";
+		$wide = null;
+		if($row->isPreamble()) {
+			$wide = "_";
+		} else {
+			$wide = "";
+		}
 		{
 			$_g1 = 0;
 			$_g = $this->cols->length;

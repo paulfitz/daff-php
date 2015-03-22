@@ -114,7 +114,7 @@ class coopy_CompareTable {
 					unset($unit1,$nb,$na);
 				}
 			}
-			$index->indexTables($a, $b);
+			$index->indexTables($a, $b, 1);
 			if($this->indexes !== null) {
 				$this->indexes->push($index);
 			}
@@ -241,7 +241,7 @@ class coopy_CompareTable {
 						}
 						unset($_g23,$_g13);
 					}
-					$index1->indexTables($a, $b);
+					$index1->indexTables($a, $b, 1);
 					if($k === $top - 1) {
 						$index_top = $index1;
 					}

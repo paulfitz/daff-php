@@ -25,7 +25,7 @@ class coopy_HighlightPatchUnit {
 	public $destRow;
 	public $patchRow;
 	public function toString() {
-		return _hx_string_or_null($this->code) . " patchRow " . _hx_string_rec($this->patchRow, "") . " sourceRows " . _hx_string_rec($this->sourcePrevRow, "") . "," . _hx_string_rec($this->sourceRow, "") . "," . _hx_string_rec($this->sourceNextRow, "") . " destRow " . _hx_string_rec($this->destRow, "");
+		return "(" . _hx_string_or_null($this->code) . " patch " . _hx_string_rec($this->patchRow, "") . " source " . _hx_string_rec($this->sourcePrevRow, "") . ":" . _hx_string_rec($this->sourceRow, "") . ":" . _hx_string_rec($this->sourceNextRow, "") . "+" . _hx_string_rec($this->sourceRowOffset, "") . " dest " . _hx_string_rec($this->destRow, "") . ")";
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

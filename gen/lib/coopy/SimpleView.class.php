@@ -4,7 +4,7 @@ class coopy_SimpleView implements coopy_View{
 	public function __construct() {}
 	public function toString($d) { if(!php_Boot::$skip_constructor) {
 		if($d === null) {
-			return null;
+			return "";
 		}
 		return "" . Std::string($d);
 	}}
