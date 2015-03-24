@@ -262,11 +262,34 @@ class coopy_HighlightPatch implements coopy_Row{
 				$idx = $_g1[$_g];
 				++$_g;
 				$match = $idx->queryByContent($this);
-				if($match->spot_a !== 1) {
+				if($match->spot_a === 0) {
 					continue;
 				}
-				$result = $match->item_a->lst[0];
-				break;
+				if($match->spot_a === 1) {
+					$result = $match->item_a->lst[0];
+					break;
+				}
+				if($this->currentRow > 0) {
+					$prev = $this->patchInSourceRow->get($this->currentRow - 1);
+					if($prev !== null) {
+						$lst = $match->item_a->lst;
+						{
+							$_g2 = 0;
+							while($_g2 < $lst->length) {
+								$row = $lst[$_g2];
+								++$_g2;
+								if($row === $prev + 1) {
+									$result = $row;
+									break;
+								}
+								unset($row);
+							}
+							unset($_g2);
+						}
+						unset($lst);
+					}
+					unset($prev);
+				}
 				unset($match,$idx);
 			}
 		}

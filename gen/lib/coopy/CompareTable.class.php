@@ -192,6 +192,7 @@ class coopy_CompareTable {
 			}
 			$top = Math::round(Math::pow(2, $columns->length));
 			$pending = new haxe_ds_IntMap();
+			$used = new haxe_ds_IntMap();
 			{
 				$_g7 = 0;
 				while($_g7 < $ha) {
@@ -276,9 +277,13 @@ class coopy_CompareTable {
 						if($spot_a1 !== 1 || $spot_b1 !== 1) {
 							continue;
 						}
-						$fixed->push($j4);
-						$align->link($j4, $cross1->item_b->lst[0]);
-						unset($spot_b1,$spot_a1,$cross1);
+						$val = $cross1->item_b->lst[0];
+						if(!$used->exists($val)) {
+							$fixed->push($j4);
+							$align->link($j4, $val);
+							$used->set($val, 1);
+						}
+						unset($val,$spot_b1,$spot_a1,$cross1);
 					}
 					{
 						$_g24 = 0;
@@ -327,7 +332,11 @@ class coopy_CompareTable {
 									if($ka !== $kb) {
 										continue;
 									}
+									if($used->exists($xb)) {
+										continue;
+									}
 									$align->link($xa, $xb);
+									$used->set($xb, 1);
 									$pending_ct--;
 									$xb += $scale;
 									if($xb >= $hb || $xb < 0) {

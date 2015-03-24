@@ -75,11 +75,11 @@ class coopy_Index {
 				$k = $_g1++;
 				$d = $t->getCell($this->cols[$k], $i);
 				$txt = $this->v->toString($d);
-				if($txt === null || $txt === "" || $txt === "null" || $txt === "undefined") {
-					continue;
-				}
 				if($k > 0) {
 					$wide .= " // ";
+				}
+				if($txt === null || $txt === "" || $txt === "null" || $txt === "undefined") {
+					continue;
 				}
 				$wide .= _hx_string_or_null($txt);
 				unset($txt,$k,$d);
@@ -100,11 +100,11 @@ class coopy_Index {
 			while($_g1 < $_g) {
 				$k = $_g1++;
 				$txt = $row->getRowString($this->cols[$k]);
-				if($txt === null || $txt === "" || $txt === "null" || $txt === "undefined") {
-					continue;
-				}
 				if($k > 0) {
 					$wide .= " // ";
+				}
+				if($txt === null || $txt === "" || $txt === "null" || $txt === "undefined") {
+					continue;
 				}
 				$wide .= _hx_string_or_null($txt);
 				unset($txt,$k);

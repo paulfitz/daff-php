@@ -17,6 +17,9 @@ class coopy_IndexItem {
 	public function value() {
 		return $this->lst[0];
 	}
+	public function asList() {
+		return $this->lst;
+	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);

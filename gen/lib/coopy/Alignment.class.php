@@ -166,7 +166,6 @@ class coopy_Alignment {
 		while($ct_vp > 0 || $ct_vl > 0 || $ct_vr > 0) {
 			$ct++;
 			if($ct > $max_ct) {
-				haxe_Log::trace("Ordering took too long, something went wrong", _hx_anonymous(array("fileName" => "Alignment.hx", "lineNumber" => 277, "className" => "coopy.Alignment", "methodName" => "toOrder3")));
 				break;
 			}
 			if($xp >= $hp) {
