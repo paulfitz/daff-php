@@ -1,8 +1,10 @@
 <?php
 
-class haxe_io_BytesBuffer {
-	public function __construct(){}
-	public $b;
+class coopy_ColumnChange {
+	public function __construct() {}
+	public $prevName;
+	public $name;
+	public $props;
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);
@@ -13,5 +15,5 @@ class haxe_io_BytesBuffer {
 		else
 			throw new HException('Unable to call <'.$m.'>');
 	}
-	function __toString() { return 'haxe.io.BytesBuffer'; }
+	function __toString() { return 'coopy.ColumnChange'; }
 }

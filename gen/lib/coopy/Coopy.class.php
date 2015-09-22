@@ -3,23 +3,37 @@
 class coopy_Coopy {
 	public function __construct() {
 		if(!php_Boot::$skip_constructor) {
-		$this->extern_preference = false;
-		$this->format_preference = null;
-		$this->delim_preference = null;
-		$this->output_format = "copy";
-		$this->nested_output = false;
-		$this->order_set = false;
-		$this->order_preference = false;
+		$this->init();
 	}}
 	public $format_preference;
 	public $delim_preference;
 	public $extern_preference;
 	public $output_format;
+	public $output_format_set;
 	public $nested_output;
 	public $order_set;
 	public $order_preference;
 	public $io;
+	public $pretty;
+	public $strategy;
+	public $css_output;
+	public $fragment;
+	public $flags;
 	public $mv;
+	public function init() {
+		$this->extern_preference = false;
+		$this->format_preference = null;
+		$this->delim_preference = null;
+		$this->output_format = "copy";
+		$this->output_format_set = false;
+		$this->nested_output = false;
+		$this->order_set = false;
+		$this->order_preference = false;
+		$this->pretty = true;
+		$this->css_output = null;
+		$this->fragment = false;
+		$this->flags = null;
+	}
 	public function checkFormat($name) {
 		if($this->extern_preference) {
 			return $this->format_preference;
@@ -53,6 +67,12 @@ class coopy_Coopy {
 			case "sqlite":{
 				$this->format_preference = "sqlite";
 			}break;
+			case "html":case "htm":{
+				$this->format_preference = "html";
+			}break;
+			case "www":{
+				$this->format_preference = "www";
+			}break;
 			default:{
 				$ext = "";
 			}break;
@@ -67,12 +87,32 @@ class coopy_Coopy {
 		$this->checkFormat("." . _hx_string_or_null($name));
 		$this->extern_preference = true;
 	}
+	public function renderTable($name, $t) {
+		$renderer = new coopy_DiffRender();
+		$renderer->usePrettyArrows($this->pretty);
+		$renderer->render($t);
+		if(!$this->fragment) {
+			$renderer->completeHtml();
+		}
+		if($this->format_preference === "www") {
+			$this->io->sendToBrowser($renderer->html());
+		} else {
+			$this->saveText($name, $renderer->html());
+		}
+		if($this->css_output !== null) {
+			$this->saveText($this->css_output, $renderer->sampleCss());
+		}
+		return true;
+	}
 	public function saveTable($name, $t) {
 		if($this->output_format !== "copy") {
 			$this->setFormat($this->output_format);
 		}
 		$txt = "";
 		$this->checkFormat($name);
+		if($this->format_preference === "sqlite" && !$this->extern_preference) {
+			$this->format_preference = "csv";
+		}
 		if($this->format_preference === "csv") {
 			$csv = new coopy_Csv($this->delim_preference);
 			$txt = $csv->renderTable($t);
@@ -80,12 +120,16 @@ class coopy_Coopy {
 			if($this->format_preference === "ndjson") {
 				$txt = _hx_deref(new coopy_Ndjson($t))->render();
 			} else {
-				if($this->format_preference === "sqlite") {
-					$this->io->writeStderr("! Cannot yet output to sqlite, aborting\x0A");
-					return false;
+				if($this->format_preference === "html" || $this->format_preference === "www") {
+					return $this->renderTable($name, $t);
 				} else {
-					$value = coopy_Coopy::jsonify($t);
-					$txt = haxe_format_JsonPrinter::hprint($value, null, "  ");
+					if($this->format_preference === "sqlite") {
+						$this->io->writeStderr("! Cannot yet output to sqlite, aborting\x0A");
+						return false;
+					} else {
+						$value = coopy_Coopy::jsonify($t);
+						$txt = haxe_format_JsonPrinter::hprint($value, null, "  ");
+					}
 				}
 			}
 		}
@@ -100,7 +144,6 @@ class coopy_Coopy {
 		return true;
 	}
 	public function loadTable($name) {
-		$txt = $this->io->getContent($name);
 		$ext = $this->checkFormat($name);
 		if($ext === "sqlite") {
 			$sql = $this->io->openSqliteDatabase($name);
@@ -109,18 +152,29 @@ class coopy_Coopy {
 				return null;
 			}
 			$helper = new coopy_SqliteHelper();
-			$names = $helper->getTableNames($sql);
-			if($names === null) {
-				$this->io->writeStderr("! Cannot find database tables, aborting\x0A");
-				return null;
+			$name1 = "";
+			if($this->flags === null || $this->flags->tables === null || $this->flags->tables->length === 0) {
+				$names = $helper->getTableNames($sql);
+				if($names === null) {
+					$this->io->writeStderr("! Cannot find database tables, aborting\x0A");
+					return null;
+				}
+				if($names->length === 0) {
+					$this->io->writeStderr("! No tables in database, aborting\x0A");
+					return null;
+				}
+				$name1 = $names[0];
+			} else {
+				$name1 = $this->flags->tables[0];
+				if($this->flags->tables->length > 1) {
+					$this->io->writeStderr("! Cannot compare more than one table yet\x0A");
+				}
 			}
-			if($names->length === 0) {
-				$this->io->writeStderr("! No tables in database, aborting\x0A");
-				return null;
-			}
-			$tab = new coopy_SqlTable($sql, new coopy_SqlTableName($names[0], null), $helper);
+			$tab = new coopy_SqlTable($sql, new coopy_SqlTableName($name1, null), $helper);
+			$this->strategy = "sql";
 			return $tab;
 		}
+		$txt = $this->io->getContent($name);
 		if($ext === "ndjson") {
 			$t = new coopy_SimpleTable(0, 0);
 			$ndjson = new coopy_Ndjson($t);
@@ -266,16 +320,14 @@ class coopy_Coopy {
 				$have_diff_driver = $this->status->get($key) === 0;
 				$key = "add_diff_driver_" . _hx_string_or_null($format1);
 				if(!$this->status->exists($key)) {
-					if(!$have_diff_driver) {
-						$r = $this->command($io, "git", (new _hx_array(array("config", "--global", "diff.daff-" . _hx_string_or_null($format1) . ".command", _hx_string_or_null($this->daff_cmd) . " diff --color --git"))));
-						if($r === 999) {
-							return $r;
-						}
-						$io->writeStdout("- Added diff driver for " . _hx_string_or_null($format1) . "\x0A");
-					} else {
-						$r = 0;
-						$io->writeStdout("- Already have diff driver for " . _hx_string_or_null($format1) . ", not touching it\x0A");
+					$r = $this->command($io, "git", (new _hx_array(array("config", "--global", "diff.daff-" . _hx_string_or_null($format1) . ".command", _hx_string_or_null($this->daff_cmd) . " diff --git"))));
+					if($r === 999) {
+						return $r;
 					}
+					if($have_diff_driver) {
+						$io->writeStdout("- Cleared existing daff diff driver for " . _hx_string_or_null($format1) . "\x0A");
+					}
+					$io->writeStdout("- Added diff driver for " . _hx_string_or_null($format1) . "\x0A");
 					$this->status->set($key, $r);
 				}
 				$key = "have_merge_driver_" . _hx_string_or_null($format1);
@@ -301,16 +353,14 @@ class coopy_Coopy {
 				}
 				$key = "add_merge_driver_" . _hx_string_or_null($format1);
 				if(!$this->status->exists($key)) {
-					if(!$have_merge_driver) {
-						$r = $this->command($io, "git", (new _hx_array(array("config", "--global", "merge.daff-" . _hx_string_or_null($format1) . ".driver", _hx_string_or_null($this->daff_cmd) . " merge --output %A %O %A %B"))));
-						if($r === 999) {
-							return $r;
-						}
-						$io->writeStdout("- Added merge driver for " . _hx_string_or_null($format1) . "\x0A");
-					} else {
-						$r = 0;
-						$io->writeStdout("- Already have merge driver for " . _hx_string_or_null($format1) . ", not touching it\x0A");
+					$r = $this->command($io, "git", (new _hx_array(array("config", "--global", "merge.daff-" . _hx_string_or_null($format1) . ".driver", _hx_string_or_null($this->daff_cmd) . " merge --output %A %O %A %B"))));
+					if($r === 999) {
+						return $r;
 					}
+					if($have_merge_driver) {
+						$io->writeStdout("- Cleared existing daff merge driver for " . _hx_string_or_null($format1) . "\x0A");
+					}
+					$io->writeStdout("- Added merge driver for " . _hx_string_or_null($format1) . "\x0A");
 					$this->status->set($key, $r);
 				}
 				unset($have_merge_driver,$have_diff_driver,$format1);
@@ -359,20 +409,19 @@ class coopy_Coopy {
 		return 0;
 	}
 	public function coopyhx($io) {
+		$this->init();
 		$args = $io->args();
 		if($args[0] === "--keep") {
 			return coopy_Coopy::keepAround();
 		}
 		$more = true;
 		$output = null;
-		$css_output = null;
-		$fragment = false;
-		$pretty = true;
 		$inplace = false;
 		$git = false;
 		$color = false;
-		$flags = new coopy_CompareFlags();
-		$flags->always_show_header = true;
+		$no_color = false;
+		$this->flags = new coopy_CompareFlags();
+		$this->flags->always_show_header = true;
 		while($more) {
 			$more = false;
 			{
@@ -389,120 +438,161 @@ class coopy_Coopy {
 					} else {
 						if($tag === "--css") {
 							$more = true;
-							$fragment = true;
-							$css_output = $args[$i + 1];
+							$this->fragment = true;
+							$this->css_output = $args[$i + 1];
 							$args->splice($i, 2);
 							break;
 						} else {
 							if($tag === "--fragment") {
 								$more = true;
-								$fragment = true;
+								$this->fragment = true;
 								$args->splice($i, 1);
 								break;
 							} else {
 								if($tag === "--plain") {
 									$more = true;
-									$pretty = false;
+									$this->pretty = false;
 									$args->splice($i, 1);
 									break;
 								} else {
 									if($tag === "--all") {
 										$more = true;
-										$flags->show_unchanged = true;
+										$this->flags->show_unchanged = true;
+										$this->flags->show_unchanged_columns = true;
 										$args->splice($i, 1);
 										break;
 									} else {
-										if($tag === "--act") {
+										if($tag === "--all-rows") {
 											$more = true;
-											if($flags->acts === null) {
-												$flags->acts = new haxe_ds_StringMap();
-											}
-											{
-												$flags->acts->set($args[$i + 1], true);
-												true;
-											}
-											$args->splice($i, 2);
+											$this->flags->show_unchanged = true;
+											$args->splice($i, 1);
 											break;
 										} else {
-											if($tag === "--context") {
+											if($tag === "--all-columns") {
 												$more = true;
-												$context = Std::parseInt($args[$i + 1]);
-												if($context >= 0) {
-													$flags->unchanged_context = $context;
-												}
-												$args->splice($i, 2);
+												$this->flags->show_unchanged_columns = true;
+												$args->splice($i, 1);
 												break;
-												unset($context);
 											} else {
-												if($tag === "--inplace") {
+												if($tag === "--act") {
 													$more = true;
-													$inplace = true;
-													$args->splice($i, 1);
+													if($this->flags->acts === null) {
+														$this->flags->acts = new haxe_ds_StringMap();
+													}
+													{
+														$this->flags->acts->set($args[$i + 1], true);
+														true;
+													}
+													$args->splice($i, 2);
 													break;
 												} else {
-													if($tag === "--git") {
+													if($tag === "--context") {
 														$more = true;
-														$git = true;
-														$args->splice($i, 1);
+														$context = Std::parseInt($args[$i + 1]);
+														if($context >= 0) {
+															$this->flags->unchanged_context = $context;
+														}
+														$args->splice($i, 2);
 														break;
+														unset($context);
 													} else {
-														if($tag === "--unordered") {
+														if($tag === "--inplace") {
 															$more = true;
-															$flags->ordered = false;
-															$flags->unchanged_context = 0;
-															$this->order_set = true;
+															$inplace = true;
 															$args->splice($i, 1);
 															break;
 														} else {
-															if($tag === "--ordered") {
+															if($tag === "--git") {
 																$more = true;
-																$flags->ordered = true;
-																$this->order_set = true;
+																$git = true;
 																$args->splice($i, 1);
 																break;
 															} else {
-																if($tag === "--color") {
+																if($tag === "--unordered") {
 																	$more = true;
-																	$color = true;
+																	$this->flags->ordered = false;
+																	$this->flags->unchanged_context = 0;
+																	$this->order_set = true;
 																	$args->splice($i, 1);
 																	break;
 																} else {
-																	if($tag === "--input-format") {
+																	if($tag === "--ordered") {
 																		$more = true;
-																		$this->setFormat($args[$i + 1]);
-																		$args->splice($i, 2);
+																		$this->flags->ordered = true;
+																		$this->order_set = true;
+																		$args->splice($i, 1);
 																		break;
 																	} else {
-																		if($tag === "--output-format") {
+																		if($tag === "--color") {
 																			$more = true;
-																			$this->output_format = $args[$i + 1];
-																			$args->splice($i, 2);
+																			$color = true;
+																			$args->splice($i, 1);
 																			break;
 																		} else {
-																			if($tag === "--id") {
+																			if($tag === "--no-color") {
 																				$more = true;
-																				if($flags->ids === null) {
-																					$flags->ids = new _hx_array(array());
-																				}
-																				$flags->ids->push($args[$i + 1]);
-																				$args->splice($i, 2);
+																				$no_color = true;
+																				$args->splice($i, 1);
 																				break;
 																			} else {
-																				if($tag === "--ignore") {
+																				if($tag === "--input-format") {
 																					$more = true;
-																					if($flags->columns_to_ignore === null) {
-																						$flags->columns_to_ignore = new _hx_array(array());
-																					}
-																					$flags->columns_to_ignore->push($args[$i + 1]);
+																					$this->setFormat($args[$i + 1]);
 																					$args->splice($i, 2);
 																					break;
 																				} else {
-																					if($tag === "--index") {
+																					if($tag === "--output-format") {
 																						$more = true;
-																						$flags->always_show_order = true;
-																						$flags->never_show_order = false;
-																						$args->splice($i, 1);
+																						$this->output_format = $args[$i + 1];
+																						$this->output_format_set = true;
+																						$args->splice($i, 2);
 																						break;
+																					} else {
+																						if($tag === "--id") {
+																							$more = true;
+																							if($this->flags->ids === null) {
+																								$this->flags->ids = new _hx_array(array());
+																							}
+																							$this->flags->ids->push($args[$i + 1]);
+																							$args->splice($i, 2);
+																							break;
+																						} else {
+																							if($tag === "--ignore") {
+																								$more = true;
+																								$this->flags->ignoreColumn($args[$i + 1]);
+																								$args->splice($i, 2);
+																								break;
+																							} else {
+																								if($tag === "--index") {
+																									$more = true;
+																									$this->flags->always_show_order = true;
+																									$this->flags->never_show_order = false;
+																									$args->splice($i, 1);
+																									break;
+																								} else {
+																									if($tag === "--www") {
+																										$more = true;
+																										$this->output_format = "www";
+																										$this->output_format_set = true;
+																										$args->splice($i, 1);
+																									} else {
+																										if($tag === "--table") {
+																											$more = true;
+																											$this->flags->addTable($args[$i + 1]);
+																											$args->splice($i, 2);
+																											break;
+																										} else {
+																											if($tag === "-w" || $tag === "--ignore-whitespace") {
+																												$more = true;
+																												$this->flags->ignore_whitespace = true;
+																												$args->splice($i, 1);
+																												break;
+																											}
+																										}
+																									}
+																								}
+																							}
+																						}
 																					}
 																				}
 																			}
@@ -546,20 +636,22 @@ class coopy_Coopy {
 				$io->writeStdout("  *.csv merge=daff-csv\x0A");
 				$io->writeStdout("\x0ACreate a file called .gitconfig in your home directory (or alternatively\x0Aopen .git/config for a particular repository) and add:\x0A\x0A");
 				$io->writeStdout("  [diff \"daff-csv\"]\x0A");
-				$io->writeStdout("  command = daff diff --color --git\x0A");
+				$io->writeStdout("  command = daff diff --git\x0A");
 				$io->writeStderr("\x0A");
 				$io->writeStdout("  [merge \"daff-csv\"]\x0A");
 				$io->writeStdout("  name = daff tabular merge\x0A");
 				$io->writeStdout("  driver = daff merge --output %A %O %A %B\x0A\x0A");
-				$io->writeStderr("Make sure you can run daff from the command-line as just \"daff\" - if not,\x0Areplace \"daff\" in the driver and command lines above with the correct way\x0Ato call it. Omit --color if your terminal does not support ANSI colors.");
+				$io->writeStderr("Make sure you can run daff from the command-line as just \"daff\" - if not,\x0Areplace \"daff\" in the driver and command lines above with the correct way\x0Ato call it. Add --no-color if your terminal does not support ANSI colors.");
 				$io->writeStderr("\x0A");
 				return 0;
 			}
 			$io->writeStderr("daff can produce and apply tabular diffs.\x0A");
 			$io->writeStderr("Call as:\x0A");
-			$io->writeStderr("  daff [--color] [--output OUTPUT.csv] a.csv b.csv\x0A");
+			$io->writeStderr("  daff [--color] [--no-color] [--output OUTPUT.csv] a.csv b.csv\x0A");
+			$io->writeStderr("  daff [--output OUTPUT.html] a.csv b.csv\x0A");
 			$io->writeStderr("  daff [--output OUTPUT.csv] parent.csv a.csv b.csv\x0A");
 			$io->writeStderr("  daff [--output OUTPUT.ndjson] a.ndjson b.ndjson\x0A");
+			$io->writeStderr("  daff [--www] a.csv b.csv\x0A");
 			$io->writeStderr("  daff patch [--inplace] [--output OUTPUT.csv] a.csv patch.csv\x0A");
 			$io->writeStderr("  daff merge [--inplace] [--output OUTPUT.csv] parent.csv a.csv b.csv\x0A");
 			$io->writeStderr("  daff trim [--output OUTPUT.csv] source.csv\x0A");
@@ -573,24 +665,27 @@ class coopy_Coopy {
 			$io->writeStderr("If you need more control, here is the full list of flags:\x0A");
 			$io->writeStderr("  daff diff [--output OUTPUT.csv] [--context NUM] [--all] [--act ACT] a.csv b.csv\x0A");
 			$io->writeStderr("     --act ACT:     show only a certain kind of change (update, insert, delete)\x0A");
-			$io->writeStderr("     --all:         do not prune unchanged rows\x0A");
-			$io->writeStderr("     --color:       highlight changes with terminal colors\x0A");
+			$io->writeStderr("     --all:         do not prune unchanged rows or columns\x0A");
+			$io->writeStderr("     --all-rows:    do not prune unchanged rows\x0A");
+			$io->writeStderr("     --all-columns: do not prune unchanged columns\x0A");
+			$io->writeStderr("     --color:       highlight changes with terminal colors (default in terminals)\x0A");
 			$io->writeStderr("     --context NUM: show NUM rows of context\x0A");
 			$io->writeStderr("     --id:          specify column to use as primary key (repeat for multi-column key)\x0A");
 			$io->writeStderr("     --ignore:      specify column to ignore completely (can repeat)\x0A");
+			$io->writeStderr("     --index:       include row/columns numbers from original tables\x0A");
 			$io->writeStderr("     --input-format [csv|tsv|ssv|json]: set format to expect for input\x0A");
+			$io->writeStderr("     --no-color:    make sure terminal colors are not used\x0A");
 			$io->writeStderr("     --ordered:     assume row order is meaningful (default for CSV)\x0A");
-			$io->writeStderr("     --output-format [csv|tsv|ssv|json|copy]: set format for output\x0A");
+			$io->writeStderr("     --output-format [csv|tsv|ssv|json|copy|html]: set format for output\x0A");
+			$io->writeStderr("     --table NAME:  compare the named table, used with SQL sources\x0A");
 			$io->writeStderr("     --unordered:   assume row order is meaningless (default for json formats)\x0A");
-			$io->writeStderr("\x0A");
-			$io->writeStderr("  daff diff --git path old-file old-hex old-mode new-file new-hex new-mode\x0A");
-			$io->writeStderr("     --git:         process arguments provided by git to diff drivers\x0A");
-			$io->writeStderr("     --index:       include row/columns numbers from orginal tables\x0A");
+			$io->writeStderr("     -w / --ignore-whitespace: ignore changes in leading/trailing whitespace\x0A");
 			$io->writeStderr("\x0A");
 			$io->writeStderr("  daff render [--output OUTPUT.html] [--css CSS.css] [--fragment] [--plain] diff.csv\x0A");
 			$io->writeStderr("     --css CSS.css: generate a suitable css file to go with the html\x0A");
 			$io->writeStderr("     --fragment:    generate just a html fragment rather than a page\x0A");
 			$io->writeStderr("     --plain:       do not use fancy utf8 characters to make arrows prettier\x0A");
+			$io->writeStderr("     --www:         send output to a browser\x0A");
 			return 1;
 		}
 		$cmd1 = $args[0];
@@ -607,18 +702,23 @@ class coopy_Coopy {
 		}
 		if($git) {
 			$ct = $args->length - $offset;
-			if($ct !== 7) {
-				$io->writeStderr("Expected 7 parameters from git, but got " . _hx_string_rec($ct, "") . "\x0A");
+			if($ct !== 7 && $ct !== 9) {
+				$io->writeStderr("Expected 7 or 9 parameters from git, but got " . _hx_string_rec($ct, "") . "\x0A");
 				return 1;
 			}
 			$git_args = $args->splice($offset, $ct);
 			$args->splice(0, $args->length);
 			$offset = 0;
-			$path = $git_args[0];
+			$old_display_path = $git_args[0];
+			$new_display_path = $git_args[0];
 			$old_file = $git_args[1];
 			$new_file = $git_args[4];
-			$io->writeStdout("--- a/" . _hx_string_or_null($path) . "\x0A");
-			$io->writeStdout("+++ b/" . _hx_string_or_null($path) . "\x0A");
+			if($ct === 9) {
+				$io->writeStdout($git_args[8]);
+				$new_display_path = $git_args[7];
+			}
+			$io->writeStdout("--- a/" . _hx_string_or_null($old_display_path) . "\x0A");
+			$io->writeStdout("+++ b/" . _hx_string_or_null($new_display_path) . "\x0A");
 			$args->push($old_file);
 			$args->push($new_file);
 		}
@@ -639,6 +739,7 @@ class coopy_Coopy {
 				$output = $args[1 + $offset];
 			}
 		}
+		$this->flags->diff_strategy = $this->strategy;
 		if($inplace) {
 			if($output !== null) {
 				$io->writeStderr("Please do not use --inplace when specifying an output.\x0A");
@@ -652,18 +753,26 @@ class coopy_Coopy {
 		$ok = true;
 		if($cmd1 === "diff") {
 			if(!$this->order_set) {
-				$flags->ordered = $this->order_preference;
-				if(!$flags->ordered) {
-					$flags->unchanged_context = 0;
+				$this->flags->ordered = $this->order_preference;
+				if(!$this->flags->ordered) {
+					$this->flags->unchanged_context = 0;
 				}
 			}
-			$flags->allow_nested_cells = $this->nested_output;
-			$ct1 = coopy_Coopy::compareTables3($parent, $a, $b, $flags);
+			$this->flags->allow_nested_cells = $this->nested_output;
+			$ct1 = coopy_Coopy::compareTables3($parent, $a, $b, $this->flags);
 			$align = $ct1->align();
-			$td = new coopy_TableDiff($align, $flags);
+			$td = new coopy_TableDiff($align, $this->flags);
 			$o = new coopy_SimpleTable(0, 0);
 			$td->hilite($o);
-			if($color) {
+			$use_color = $color;
+			if(!($color || $no_color)) {
+				if($output === "-" && $this->output_format === "copy") {
+					if($io->isTtyKnown()) {
+						$use_color = $io->isTty();
+					}
+				}
+			}
+			if($use_color) {
 				$render = new coopy_TerminalDiffRender();
 				$tool->saveText($output, $render->render($o));
 			} else {
@@ -671,12 +780,12 @@ class coopy_Coopy {
 			}
 		} else {
 			if($cmd1 === "patch") {
-				$patcher = new coopy_HighlightPatch($a, $b);
+				$patcher = new coopy_HighlightPatch($a, $b, null);
 				$patcher->apply();
 				$tool->saveTable($output, $a);
 			} else {
 				if($cmd1 === "merge") {
-					$merger = new coopy_Merger($parent, $a, $b, $flags);
+					$merger = new coopy_Merger($parent, $a, $b, $this->flags);
 					$conflicts = $merger->apply();
 					$ok = $conflicts === 0;
 					if($conflicts > 0) {
@@ -688,16 +797,7 @@ class coopy_Coopy {
 						$tool->saveTable($output, $a);
 					} else {
 						if($cmd1 === "render") {
-							$renderer = new coopy_DiffRender();
-							$renderer->usePrettyArrows($pretty);
-							$renderer->render($a);
-							if(!$fragment) {
-								$renderer->completeHtml();
-							}
-							$tool->saveText($output, $renderer->html());
-							if($css_output !== null) {
-								$tool->saveText($css_output, $renderer->sampleCss());
-							}
+							$this->renderTable($output, $a);
 						} else {
 							if($cmd1 === "copy") {
 								$tool->saveTable($output, $a);
@@ -723,7 +823,36 @@ class coopy_Coopy {
 		else
 			throw new HException('Unable to call <'.$m.'>');
 	}
-	static $VERSION = "1.2.8";
+	static $VERSION = "1.3.2";
+	static function diffAsHtml($local, $remote, $flags = null) {
+		$o = coopy_Coopy::diff($local, $remote, $flags);
+		$render = new coopy_DiffRender();
+		return $render->render($o)->html();
+	}
+	static function diffAsAnsi($local, $remote, $flags = null) {
+		$o = coopy_Coopy::diff($local, $remote, $flags);
+		$render = new coopy_TerminalDiffRender();
+		return $render->render($o);
+	}
+	static function diff($local, $remote, $flags = null) {
+		$comp = new coopy_TableComparisonState();
+		$comp->a = $local;
+		$comp->b = $remote;
+		if($flags === null) {
+			$flags = new coopy_CompareFlags();
+		}
+		$comp->compare_flags = $flags;
+		$ct = new coopy_CompareTable($comp);
+		$align = $ct->align();
+		$td = new coopy_TableDiff($align, $flags);
+		$o = new coopy_SimpleTable(0, 0);
+		$td->hilite($o);
+		return $o;
+	}
+	static function patch($local, $patch, $flags = null) {
+		$patcher = new coopy_HighlightPatch($local, $patch, null);
+		return $patcher->apply();
+	}
 	static function compareTables($local, $remote, $flags = null) {
 		$comp = new coopy_TableComparisonState();
 		$comp->a = $local;
@@ -745,13 +874,15 @@ class coopy_Coopy {
 		$st = new coopy_SimpleTable(1, 1);
 		$v = new coopy_Viterbi();
 		$td = new coopy_TableDiff(null, null);
-		$idx = new coopy_Index();
-		$dr = new coopy_DiffRender();
 		$cf = new coopy_CompareFlags();
-		$hp = new coopy_HighlightPatch(null, null);
+		$idx = new coopy_Index($cf);
+		$dr = new coopy_DiffRender();
+		$hp = new coopy_HighlightPatch(null, null, null);
 		$csv = new coopy_Csv(null);
 		$tm = new coopy_TableModifier(null);
-		$sc = new coopy_SqlCompare(null, null, null);
+		$sc = new coopy_SqlCompare(null, null, null, null, null);
+		$sm = new coopy_SimpleMeta(null, null);
+		$ct = new coopy_CombinedTable(null);
 		return 0;
 	}
 	static function cellFor($x) {
@@ -853,7 +984,7 @@ class coopy_Coopy {
 				unset($y);
 			}
 		}
-		haxe_Log::trace($txt, _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 794, "className" => "coopy.Coopy", "methodName" => "show")));
+		haxe_Log::trace($txt, _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 938, "className" => "coopy.Coopy", "methodName" => "show")));
 	}
 	static function jsonify($t) {
 		$workbook = new haxe_ds_StringMap();

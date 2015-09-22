@@ -35,8 +35,20 @@ class coopy_TableIO {
 	public function exists($path) {
 		return file_exists($path);
 	}
+	public function isTtyKnown() {
+		return false;
+	}
+	public function isTty() {
+		if(Sys::getEnv("GIT_PAGER_IN_USE") === "true") {
+			return true;
+		}
+		return false;
+	}
 	public function openSqliteDatabase($path) {
 		return null;
+	}
+	public function sendToBrowser($html) {
+		haxe_Log::trace("do not know how to send to browser in this language", _hx_anonymous(array("fileName" => "TableIO.hx", "lineNumber" => 175, "className" => "coopy.TableIO", "methodName" => "sendToBrowser")));
 	}
 	function __toString() { return 'coopy.TableIO'; }
 }

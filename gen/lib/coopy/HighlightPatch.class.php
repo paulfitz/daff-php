@@ -1,12 +1,17 @@
 <?php
 
 class coopy_HighlightPatch implements coopy_Row{
-	public function __construct($source, $patch) {
+	public function __construct($source, $patch, $flags = null) {
 		if(!php_Boot::$skip_constructor) {
 		$this->source = $source;
 		$this->patch = $patch;
+		$this->flags = $flags;
+		if($flags === null) {
+			$this->flags = new coopy_CompareFlags();
+		}
 		$this->view = $patch->getCellView();
 		$this->sourceView = $source->getCellView();
+		$this->meta = $source->getMeta();
 	}}
 	public $source;
 	public $patch;
@@ -30,6 +35,8 @@ class coopy_HighlightPatch implements coopy_Row{
 	public $indexes;
 	public $sourceInPatchCol;
 	public $patchInSourceCol;
+	public $destInPatchCol;
+	public $patchInDestCol;
 	public $patchInSourceRow;
 	public $lastSourceRow;
 	public $actions;
@@ -39,6 +46,14 @@ class coopy_HighlightPatch implements coopy_Row{
 	public $colPermutationRev;
 	public $haveDroppedColumns;
 	public $headerRow;
+	public $preambleRow;
+	public $flags;
+	public $meta_change;
+	public $process_meta;
+	public $prev_meta;
+	public $next_meta;
+	public $finished_columns;
+	public $meta;
 	public function reset() {
 		$this->header = new haxe_ds_IntMap();
 		$this->headerPre = new haxe_ds_StringMap();
@@ -53,7 +68,7 @@ class coopy_HighlightPatch implements coopy_Row{
 		$this->currentRow = -1;
 		$this->rowInfo = new coopy_CellInfo();
 		$this->cellInfo = new coopy_CellInfo();
-		$this->sourceInPatchCol = $this->patchInSourceCol = null;
+		$this->sourceInPatchCol = $this->patchInSourceCol = $this->patchInDestCol = null;
 		$this->patchInSourceRow = new haxe_ds_IntMap();
 		$this->indexes = null;
 		$this->lastSourceRow = -1;
@@ -64,6 +79,15 @@ class coopy_HighlightPatch implements coopy_Row{
 		$this->colPermutationRev = null;
 		$this->haveDroppedColumns = false;
 		$this->headerRow = 0;
+		$this->preambleRow = 0;
+		$this->meta_change = false;
+		$this->process_meta = false;
+		$this->prev_meta = null;
+		$this->next_meta = null;
+		$this->finished_columns = false;
+	}
+	public function processMeta() {
+		$this->process_meta = true;
 	}
 	public function apply() {
 		$this->reset();
@@ -91,7 +115,7 @@ class coopy_HighlightPatch implements coopy_Row{
 				unset($str,$r);
 			}
 		}
-		$this->headerRow = $this->rcOffset;
+		$this->preambleRow = $this->headerRow = $this->rcOffset;
 		{
 			$_g11 = 0;
 			$_g2 = $this->patch->get_height();
@@ -101,8 +125,8 @@ class coopy_HighlightPatch implements coopy_Row{
 				unset($r1);
 			}
 		}
-		$this->finishRows();
 		$this->finishColumns();
+		$this->finishRows();
 		return true;
 	}
 	public function needSourceColumns() {
@@ -128,6 +152,26 @@ class coopy_HighlightPatch implements coopy_Row{
 			}
 		}
 	}
+	public function needDestColumns() {
+		if($this->patchInDestCol !== null) {
+			return;
+		}
+		$this->patchInDestCol = new haxe_ds_IntMap();
+		$this->destInPatchCol = new haxe_ds_IntMap();
+		{
+			$_g = 0;
+			$_g1 = $this->cmods;
+			while($_g < $_g1->length) {
+				$cmod = $_g1[$_g];
+				++$_g;
+				if($cmod->patchRow !== -1) {
+					$this->patchInDestCol->set($cmod->patchRow, $cmod->destRow);
+					$this->destInPatchCol->set($cmod->destRow, $cmod->patchRow);
+				}
+				unset($cmod);
+			}
+		}
+	}
 	public function needSourceIndex() {
 		if($this->indexes !== null) {
 			return;
@@ -142,34 +186,130 @@ class coopy_HighlightPatch implements coopy_Row{
 		$this->indexes = $comp->getIndexes();
 		$this->needSourceColumns();
 	}
+	public function setMetaProp($target, $column_name, $prop_name, $value) {
+		if($column_name === null) {
+			return;
+		}
+		if($prop_name === null) {
+			return;
+		}
+		if(!$target->exists($column_name)) {
+			$value1 = new _hx_array(array());
+			$target->set($column_name, $value1);
+		}
+		$change = new coopy_PropertyChange();
+		$change->prevName = $prop_name;
+		$change->name = $prop_name;
+		if(_hx_equal($value, "")) {
+			$value = null;
+		}
+		$change->val = $value;
+		$target->get($column_name)->push($change);
+	}
+	public function applyMetaRow($code) {
+		$this->needSourceColumns();
+		$codes = _hx_explode("@", $code);
+		$prop_name = "";
+		if($codes->length > 1) {
+			$prop_name = $codes[$codes->length - 2];
+		}
+		if($codes->length > 0) {
+			$code = $codes[$codes->length - 1];
+		}
+		if($this->prev_meta === null) {
+			$this->prev_meta = new haxe_ds_StringMap();
+		}
+		if($this->next_meta === null) {
+			$this->next_meta = new haxe_ds_StringMap();
+		}
+		{
+			$_g1 = $this->payloadCol;
+			$_g = $this->payloadTop;
+			while($_g1 < $_g) {
+				$i = $_g1++;
+				$txt = $this->getString($i);
+				$idx_patch = $i;
+				$idx_src = null;
+				if($this->patchInSourceCol->exists($idx_patch)) {
+					$idx_src = $this->patchInSourceCol->get($idx_patch);
+				} else {
+					$idx_src = -1;
+				}
+				$prev_name = null;
+				$name = null;
+				if($idx_src !== -1) {
+					$prev_name = $this->source->getCell($idx_src, 0);
+				}
+				if($this->header->exists($idx_patch)) {
+					$name = $this->header->get($idx_patch);
+				}
+				coopy_DiffRender::examineCell(0, 0, $this->view, $txt, "", $code, "", $this->cellInfo, null);
+				if($this->cellInfo->updated) {
+					$this->setMetaProp($this->prev_meta, $prev_name, $prop_name, $this->cellInfo->lvalue);
+					$this->setMetaProp($this->next_meta, $name, $prop_name, $this->cellInfo->rvalue);
+				} else {
+					$this->setMetaProp($this->prev_meta, $prev_name, $prop_name, $this->cellInfo->value);
+					$this->setMetaProp($this->next_meta, $name, $prop_name, $this->cellInfo->value);
+				}
+				unset($txt,$prev_name,$name,$idx_src,$idx_patch,$i);
+			}
+		}
+	}
 	public function applyRow($r) {
 		$this->currentRow = $r;
 		$code = $this->actions[$r];
-		if($r === 0 && $this->rcOffset > 0) {} else {
+		$done = false;
+		if($r === 0 && $this->rcOffset > 0) {
+			$done = true;
+		} else {
 			if($code === "@@") {
-				$this->headerRow = $r;
+				$this->preambleRow = $this->headerRow = $r;
 				$this->applyHeader();
 				$this->applyAction("@@");
+				$done = true;
 			} else {
 				if($code === "!") {
-					$this->headerRow = $r;
+					$this->preambleRow = $this->headerRow = $r;
 					$this->applyMeta();
+					$done = true;
 				} else {
-					if($code === "+++") {
+					if(_hx_index_of($code, "@", null) === 0) {
+						$this->flags->addWarning("cannot usefully apply diffs with metadata yet: '" . _hx_string_or_null($code) . "'");
+						$this->preambleRow = $r;
+						$this->applyMetaRow($code);
+						if($this->process_meta) {
+							$codes = _hx_explode("@", $code);
+							if($codes->length > 0) {
+								$code = $codes[$codes->length - 1];
+							}
+						} else {
+							$this->meta_change = true;
+							$done = true;
+						}
+						$this->meta_change = true;
+						$done = true;
+					}
+				}
+			}
+		}
+		if($this->process_meta) {
+			return;
+		}
+		if(!$done) {
+			$this->finishColumns();
+			if($code === "+++") {
+				$this->applyAction($code);
+			} else {
+				if($code === "---") {
+					$this->applyAction($code);
+				} else {
+					if($code === "+" || $code === ":") {
 						$this->applyAction($code);
 					} else {
-						if($code === "---") {
-							$this->applyAction($code);
+						if(_hx_index_of($code, "->", null) >= 0) {
+							$this->applyAction("->");
 						} else {
-							if($code === "+" || $code === ":") {
-								$this->applyAction($code);
-							} else {
-								if(_hx_index_of($code, "->", null) >= 0) {
-									$this->applyAction("->");
-								} else {
-									$this->lastSourceRow = -1;
-								}
-							}
+							$this->lastSourceRow = -1;
 						}
 					}
 				}
@@ -241,17 +381,18 @@ class coopy_HighlightPatch implements coopy_Row{
 				unset($name,$move,$mod,$i);
 			}
 		}
-		if($this->source->get_height() === 0) {
-			$this->applyAction("+++");
+		if(!$this->useMetaForRowChanges()) {
+			if($this->source->get_height() === 0) {
+				$this->applyAction("+++");
+			}
 		}
 	}
 	public function lookUp($del = null) {
 		if($del === null) {
 			$del = 0;
 		}
-		$at = $this->patchInSourceRow->get($this->currentRow + $del);
-		if($at !== null) {
-			return $at;
+		if($this->patchInSourceRow->exists($this->currentRow + $del)) {
+			return $this->patchInSourceRow->get($this->currentRow + $del);
 		}
 		$result = -1;
 		$this->currentRow += $del;
@@ -300,7 +441,82 @@ class coopy_HighlightPatch implements coopy_Row{
 		$this->currentRow -= $del;
 		return $result;
 	}
+	public function applyActionExternal($code) {
+		if($code === "@@") {
+			return;
+		}
+		$rc = new coopy_RowChange();
+		$rc->action = $code;
+		$this->checkAct();
+		if($code !== "+++") {
+			$rc->cond = new haxe_ds_StringMap();
+		}
+		if($code !== "---") {
+			$rc->val = new haxe_ds_StringMap();
+		}
+		$have_column = false;
+		{
+			$_g1 = $this->payloadCol;
+			$_g = $this->payloadTop;
+			while($_g1 < $_g) {
+				$i = $_g1++;
+				$prev_name = $this->header->get($i);
+				$name = $prev_name;
+				if($this->headerRename->exists($prev_name)) {
+					$name = $this->headerRename->get($prev_name);
+				}
+				$cact = $this->modifier->get($i);
+				if($cact === "...") {
+					continue;
+				}
+				if($name === null || $name === "") {
+					continue;
+				}
+				$txt = $this->getString($i);
+				$updated = false;
+				if($this->rowInfo->updated) {
+					$this->getPreString($txt);
+					$updated = $this->cellInfo->updated;
+				}
+				if($cact === "+++" && $code !== "---") {
+					if($txt !== null && $txt !== "") {
+						if($rc->val === null) {
+							$rc->val = new haxe_ds_StringMap();
+						}
+						$rc->val->set($name, $txt);
+						$have_column = true;
+					}
+				}
+				if($updated) {
+					$rc->cond->set($name, $this->cellInfo->lvalue);
+					$rc->val->set($name, $this->cellInfo->rvalue);
+				} else {
+					if($code === "+++") {
+						if($cact !== "---") {
+							$rc->val->set($name, $txt);
+						}
+					} else {
+						if($cact !== "+++" && $cact !== "---") {
+							$rc->cond->set($name, $txt);
+						}
+					}
+				}
+				unset($updated,$txt,$prev_name,$name,$i,$cact);
+			}
+		}
+		if($rc->action === "+") {
+			if(!$have_column) {
+				return;
+			}
+			$rc->action = "->";
+		}
+		$this->meta->changeRow($rc);
+	}
 	public function applyAction($code) {
+		if($this->useMetaForRowChanges()) {
+			$this->applyActionExternal($code);
+			return;
+		}
 		$mod = new coopy_HighlightPatchUnit();
 		$mod->code = $code;
 		$mod->add = $code === "+++";
@@ -365,7 +581,7 @@ class coopy_HighlightPatch implements coopy_Row{
 		return $this->getPreString($this->getString($at));
 	}
 	public function isPreamble() {
-		return $this->currentRow <= $this->headerRow;
+		return $this->currentRow <= $this->preambleRow;
 	}
 	public function sortMods($a, $b) {
 		if($b->code === "@@" && $a->code !== "@@") {
@@ -442,7 +658,9 @@ class coopy_HighlightPatch implements coopy_Row{
 					if($mod->add && $mod->sourceNextRow !== -1) {
 						$last = $mod->sourceNextRow + $mod->sourceRowOffset;
 					} else {
-						$last = -1;
+						if($mod->rem || $mod->add) {
+							$last = -1;
+						}
 					}
 				}
 				unset($mod);
@@ -459,6 +677,18 @@ class coopy_HighlightPatch implements coopy_Row{
 			}
 		}
 		return $len + $offset;
+	}
+	public function useMetaForColumnChanges() {
+		if($this->meta === null) {
+			return false;
+		}
+		return $this->meta->useForColumnChanges();
+	}
+	public function useMetaForRowChanges() {
+		if($this->meta === null) {
+			return false;
+		}
+		return $this->meta->useForRowChanges();
 	}
 	public function computeOrdering($mods, $permutation, $permutationRev, $dim) {
 		$to_unit = new haxe_ds_IntMap();
@@ -590,7 +820,47 @@ class coopy_HighlightPatch implements coopy_Row{
 		$this->rowPermutationRev = new _hx_array(array());
 		$this->computeOrdering($this->mods, $this->rowPermutation, $this->rowPermutationRev, $this->source->get_height());
 	}
+	public function fillInNewColumns() {
+		$_g = 0;
+		$_g1 = $this->cmods;
+		while($_g < $_g1->length) {
+			$cmod = $_g1[$_g];
+			++$_g;
+			if(!$cmod->rem) {
+				if($cmod->add) {
+					{
+						$_g2 = 0;
+						$_g3 = $this->mods;
+						while($_g2 < $_g3->length) {
+							$mod = $_g3[$_g2];
+							++$_g2;
+							if($mod->patchRow !== -1 && $mod->destRow !== -1) {
+								$d = $this->patch->getCell($cmod->patchRow, $mod->patchRow);
+								$this->source->setCell($cmod->destRow, $mod->destRow, $d);
+								unset($d);
+							}
+							unset($mod);
+						}
+						unset($_g3,$_g2);
+					}
+					$hdr = $this->header->get($cmod->patchRow);
+					$this->source->setCell($cmod->destRow, 0, $this->view->toDatum($hdr));
+					unset($hdr);
+				}
+			}
+			unset($cmod);
+		}
+	}
 	public function finishRows() {
+		if($this->useMetaForRowChanges()) {
+			return;
+		}
+		if($this->source->get_width() === 0) {
+			if($this->source->get_height() !== 0) {
+				$this->source->resize(0, 0);
+			}
+			return;
+		}
 		$fate = new _hx_array(array());
 		$this->permuteRows();
 		if($this->rowPermutation->length > 0) {
@@ -610,6 +880,7 @@ class coopy_HighlightPatch implements coopy_Row{
 		}
 		$len = $this->processMods($this->mods, $fate, $this->source->get_height());
 		$this->source->insertOrDeleteRows($fate, $len);
+		$this->needDestColumns();
 		{
 			$_g2 = 0;
 			$_g11 = $this->mods;
@@ -623,7 +894,7 @@ class coopy_HighlightPatch implements coopy_Row{
 						while($__hx__it->hasNext()) {
 							unset($c);
 							$c = $__hx__it->next();
-							$offset = $this->patchInSourceCol->get($c);
+							$offset = $this->patchInDestCol->get($c);
 							if($offset !== null && $offset >= 0) {
 								$this->source->setCell($offset, $mod1->destRow, $this->patch->getCell($c, $mod1->patchRow));
 							}
@@ -650,13 +921,31 @@ class coopy_HighlightPatch implements coopy_Row{
 									continue;
 								}
 								$d = $this->view->toDatum($this->csv->parseCell($this->cellInfo->rvalue));
-								$this->source->setCell($this->patchInSourceCol->get($c1), $mod1->destRow, $d);
-								unset($txt,$d);
+								$offset1 = $this->patchInDestCol->get($c1);
+								if($offset1 !== null && $offset1 >= 0) {
+									$this->source->setCell($this->patchInDestCol->get($c1), $mod1->destRow, $d);
+								}
+								unset($txt,$offset1,$d);
 							}
 						}
 					}
 				}
 				unset($mod1);
+			}
+		}
+		$this->fillInNewColumns();
+		{
+			$_g12 = 0;
+			$_g3 = $this->source->get_width();
+			while($_g12 < $_g3) {
+				$i = $_g12++;
+				$name = $this->view->toString($this->source->getCell($i, 0));
+				$next_name = $this->headerRename->get($name);
+				if($next_name === null) {
+					continue;
+				}
+				$this->source->setCell($i, 0, $this->view->toDatum($next_name));
+				unset($next_name,$name,$i);
 			}
 		}
 	}
@@ -672,6 +961,10 @@ class coopy_HighlightPatch implements coopy_Row{
 		}
 	}
 	public function finishColumns() {
+		if($this->finished_columns) {
+			return;
+		}
+		$this->finished_columns = true;
 		$this->needSourceColumns();
 		{
 			$_g1 = $this->payloadCol;
@@ -684,7 +977,10 @@ class coopy_HighlightPatch implements coopy_Row{
 					$act = "";
 				}
 				if($act === "---") {
-					$at = $this->patchInSourceCol->get($i);
+					$at = -1;
+					if($this->patchInSourceCol->exists($i)) {
+						$at = $this->patchInSourceCol->get($i);
+					}
 					$mod = new coopy_HighlightPatchUnit();
 					$mod->code = $act;
 					$mod->rem = true;
@@ -711,19 +1007,23 @@ class coopy_HighlightPatch implements coopy_Row{
 						unset($prev,$mod1,$cont);
 					} else {
 						if($act !== "...") {
+							$at1 = -1;
+							if($this->patchInSourceCol->exists($i)) {
+								$at1 = $this->patchInSourceCol->get($i);
+							}
 							$mod2 = new coopy_HighlightPatchUnit();
 							$mod2->code = $act;
 							$mod2->patchRow = $i;
-							$mod2->sourceRow = $this->patchInSourceCol->get($i);
+							$mod2->sourceRow = $at1;
 							$this->cmods->push($mod2);
-							unset($mod2);
+							unset($mod2,$at1);
 						}
 					}
 				}
 				unset($i,$hdr,$act);
 			}
 		}
-		$at1 = -1;
+		$at2 = -1;
 		$rat = -1;
 		{
 			$_g11 = 0;
@@ -732,9 +1032,9 @@ class coopy_HighlightPatch implements coopy_Row{
 				$i1 = $_g11++;
 				$icode = _hx_array_get($this->cmods, $i1)->code;
 				if($icode !== "+++" && $icode !== "---") {
-					$at1 = _hx_array_get($this->cmods, $i1)->sourceRow;
+					$at2 = _hx_array_get($this->cmods, $i1)->sourceRow;
 				}
-				_hx_array_get($this->cmods, $i1 + 1)->sourcePrevRow = $at1;
+				_hx_array_get($this->cmods, $i1 + 1)->sourcePrevRow = $at2;
 				$j = $this->cmods->length - 1 - $i1;
 				$jcode = _hx_array_get($this->cmods, $j)->code;
 				if($jcode !== "+++" && $jcode !== "---") {
@@ -760,56 +1060,85 @@ class coopy_HighlightPatch implements coopy_Row{
 						unset($mod3);
 					}
 				}
-				$this->source->insertOrDeleteColumns($this->colPermutation, $this->colPermutation->length);
+				if(!$this->useMetaForColumnChanges()) {
+					$this->source->insertOrDeleteColumns($this->colPermutation, $this->colPermutation->length);
+				}
 			}
 		}
 		$len = $this->processMods($this->cmods, $fate, $this->source->get_width());
-		$this->source->insertOrDeleteColumns($fate, $len);
+		if(!$this->useMetaForColumnChanges()) {
+			$this->source->insertOrDeleteColumns($fate, $len);
+			return;
+		}
+		$changed = false;
 		{
 			$_g4 = 0;
 			$_g13 = $this->cmods;
 			while($_g4 < $_g13->length) {
-				$cmod = $_g13[$_g4];
+				$mod4 = $_g13[$_g4];
 				++$_g4;
-				if(!$cmod->rem) {
-					if($cmod->add) {
-						{
-							$_g21 = 0;
-							$_g31 = $this->mods;
-							while($_g21 < $_g31->length) {
-								$mod4 = $_g31[$_g21];
-								++$_g21;
-								if($mod4->patchRow !== -1 && $mod4->destRow !== -1) {
-									$d = $this->patch->getCell($cmod->patchRow, $mod4->patchRow);
-									$this->source->setCell($cmod->destRow, $mod4->destRow, $d);
-									unset($d);
-								}
-								unset($mod4);
-							}
-							unset($_g31,$_g21);
-						}
-						$hdr1 = $this->header->get($cmod->patchRow);
-						$this->source->setCell($cmod->destRow, 0, $this->view->toDatum($hdr1));
-						unset($hdr1);
-					}
+				if($mod4->code !== "") {
+					$changed = true;
+					break;
 				}
-				unset($cmod);
+				unset($mod4);
 			}
 		}
+		if(!$changed) {
+			return;
+		}
+		$columns = new _hx_array(array());
+		$target = new haxe_ds_IntMap();
+		$inc = array(new _hx_lambda(array(&$at2, &$changed, &$columns, &$fate, &$len, &$rat, &$target), "coopy_HighlightPatch_0"), 'execute');
 		{
 			$_g14 = 0;
-			$_g5 = $this->source->get_width();
+			$_g5 = $fate->length;
 			while($_g14 < $_g5) {
 				$i2 = $_g14++;
-				$name = $this->view->toString($this->source->getCell($i2, 0));
-				$next_name = $this->headerRename->get($name);
-				if($next_name === null) {
-					continue;
+				{
+					$value = call_user_func_array($inc, array($fate[$i2]));
+					$target->set($i2, $value);
+					unset($value);
 				}
-				$this->source->setCell($i2, 0, $this->view->toDatum($next_name));
-				unset($next_name,$name,$i2);
+				unset($i2);
 			}
 		}
+		$this->needSourceColumns();
+		$this->needDestColumns();
+		{
+			$_g15 = 1;
+			$_g6 = $this->patch->get_width();
+			while($_g15 < $_g6) {
+				$idx_patch = $_g15++;
+				$change = new coopy_ColumnChange();
+				$idx_src = null;
+				if($this->patchInSourceCol->exists($idx_patch)) {
+					$idx_src = $this->patchInSourceCol->get($idx_patch);
+				} else {
+					$idx_src = -1;
+				}
+				$prev_name = null;
+				$name = null;
+				if($idx_src !== -1) {
+					$prev_name = $this->source->getCell($idx_src, 0);
+				}
+				if($this->modifier->get($idx_patch) !== "---") {
+					if($this->header->exists($idx_patch)) {
+						$name = $this->header->get($idx_patch);
+					}
+				}
+				$change->prevName = $prev_name;
+				$change->name = $name;
+				if($this->next_meta !== null) {
+					if($this->next_meta->exists($name)) {
+						$change->props = $this->next_meta->get($name);
+					}
+				}
+				$columns->push($change);
+				unset($prev_name,$name,$idx_src,$idx_patch,$change);
+			}
+		}
+		$this->meta->alterColumns($columns);
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
@@ -822,4 +1151,13 @@ class coopy_HighlightPatch implements coopy_Row{
 			throw new HException('Unable to call <'.$m.'>');
 	}
 	function __toString() { return 'coopy.HighlightPatch'; }
+}
+function coopy_HighlightPatch_0(&$at2, &$changed, &$columns, &$fate, &$len, &$rat, &$target, $x) {
+	{
+		if($x < 0) {
+			return $x;
+		} else {
+			return $x + 1;
+		}
+	}
 }

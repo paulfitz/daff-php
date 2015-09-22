@@ -69,6 +69,24 @@ class coopy_Unit {
 		}
 		return false;
 	}
+	public function base26($num) {
+		$alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		if($num < 0) {
+			return "-";
+		}
+		$out = "";
+		do {
+			$out = _hx_string_or_null($out) . _hx_string_or_null(_hx_char_at($alpha, _hx_mod($num, 26)));
+			$num = Math::floor($num / 26) - 1;
+		} while($num >= 0);
+		return $out;
+	}
+	public function toBase26String() {
+		if($this->p >= -1) {
+			return _hx_string_or_null($this->base26($this->p)) . "|" . _hx_string_or_null($this->base26($this->l)) . ":" . _hx_string_or_null($this->base26($this->r));
+		}
+		return _hx_string_or_null($this->base26($this->l)) . ":" . _hx_string_or_null($this->base26($this->r));
+	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);

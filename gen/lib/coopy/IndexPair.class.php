@@ -1,10 +1,11 @@
 <?php
 
 class coopy_IndexPair {
-	public function __construct() {
+	public function __construct($flags) {
 		if(!php_Boot::$skip_constructor) {
-		$this->ia = new coopy_Index();
-		$this->ib = new coopy_Index();
+		$this->flags = $flags;
+		$this->ia = new coopy_Index($flags);
+		$this->ib = new coopy_Index($flags);
 		$this->quality = 0;
 		$this->hdr = 0;
 	}}
@@ -12,6 +13,7 @@ class coopy_IndexPair {
 	public $ib;
 	public $hdr;
 	public $quality;
+	public $flags;
 	public function addColumns($ca, $cb) {
 		$this->ia->addColumn($ca);
 		$this->ib->addColumn($cb);

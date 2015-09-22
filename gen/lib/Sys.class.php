@@ -9,6 +9,9 @@ class Sys {
 			return (new _hx_array(array()));
 		}
 	}
+	static function getEnv($s) {
+		return getenv($s);
+	}
 	static function systemName() {
 		$s = php_uname("s");
 		$p = null;

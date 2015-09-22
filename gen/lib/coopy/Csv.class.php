@@ -20,29 +20,24 @@ class coopy_Csv {
 	public $delim;
 	public function renderTable($t) {
 		$result = "";
-		$w = $t->get_width();
-		$h = $t->get_height();
 		$txt = "";
 		$v = $t->getCellView();
-		{
-			$_g = 0;
-			while($_g < $h) {
-				$y = $_g++;
-				{
-					$_g1 = 0;
-					while($_g1 < $w) {
-						$x = $_g1++;
-						if($x > 0) {
-							$txt .= _hx_string_or_null($this->delim);
-						}
-						$txt .= _hx_string_or_null($this->renderCell($v, $t->getCell($x, $y)));
-						unset($x);
+		$stream = new coopy_TableStream($t);
+		$w = $stream->width();
+		while($stream->fetch()) {
+			{
+				$_g = 0;
+				while($_g < $w) {
+					$x = $_g++;
+					if($x > 0) {
+						$txt .= _hx_string_or_null($this->delim);
 					}
-					unset($_g1);
+					$txt .= _hx_string_or_null($this->renderCell($v, $stream->getCell($x)));
+					unset($x);
 				}
-				$txt .= "\x0D\x0A";
-				unset($y);
+				unset($_g);
 			}
+			$txt .= "\x0D\x0A";
 		}
 		return $txt;
 	}

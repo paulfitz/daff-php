@@ -11,4 +11,6 @@ interface coopy_SqlDatabase {
 	function end();
 	function width();
 	function rowid();
+	function getHelper();
+	function getNameForAttachment();
 }

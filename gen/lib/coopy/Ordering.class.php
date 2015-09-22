@@ -20,6 +20,9 @@ class coopy_Ordering {
 	public function getList() {
 		return $this->order;
 	}
+	public function setList($lst) {
+		$this->order = $lst;
+	}
 	public function toString() {
 		$txt = "";
 		{

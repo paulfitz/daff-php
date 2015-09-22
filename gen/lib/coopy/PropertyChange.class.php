@@ -1,6 +1,10 @@
 <?php
 
-class haxe_io_BytesInput extends haxe_io_Input {
+class coopy_PropertyChange {
+	public function __construct() {}
+	public $prevName;
+	public $name;
+	public $val;
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);
@@ -11,5 +15,5 @@ class haxe_io_BytesInput extends haxe_io_Input {
 		else
 			throw new HException('Unable to call <'.$m.'>');
 	}
-	function __toString() { return 'haxe.io.BytesInput'; }
+	function __toString() { return 'coopy.PropertyChange'; }
 }

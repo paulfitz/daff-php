@@ -8,5 +8,5 @@ interface coopy_CellBuilder {
 	function update($local, $remote);
 	function conflict($parent, $local, $remote);
 	function marker($label);
-	function links($unit);
+	function links($unit, $row_like);
 }

@@ -14,6 +14,7 @@ class coopy_CellInfo {
 	public $pvalue;
 	public $lvalue;
 	public $rvalue;
+	public $meta;
 	public function toString() {
 		if(!php_Boot::$skip_constructor) {
 		if(!$this->updated) {

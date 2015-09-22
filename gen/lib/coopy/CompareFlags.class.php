@@ -15,6 +15,14 @@ class coopy_CompareFlags {
 		$this->ids = null;
 		$this->columns_to_ignore = null;
 		$this->allow_nested_cells = false;
+		$this->warnings = null;
+		$this->diff_strategy = null;
+		$this->show_meta = true;
+		$this->show_unchanged_meta = false;
+		$this->tables = null;
+		$this->parent = null;
+		$this->count_like_a_spreadsheet = true;
+		$this->ignore_whitespace = false;
 	}}
 	public $ordered;
 	public $show_unchanged;
@@ -27,7 +35,15 @@ class coopy_CompareFlags {
 	public $acts;
 	public $ids;
 	public $columns_to_ignore;
+	public $tables;
 	public $allow_nested_cells;
+	public $warnings;
+	public $diff_strategy;
+	public $show_meta;
+	public $show_unchanged_meta;
+	public $parent;
+	public $count_like_a_spreadsheet;
+	public $ignore_whitespace;
 	public function filter($act, $allow) {
 		if($this->acts === null) {
 			$this->acts = new haxe_ds_StringMap();
@@ -86,6 +102,21 @@ class coopy_CompareFlags {
 			$this->columns_to_ignore = new _hx_array(array());
 		}
 		$this->columns_to_ignore->push($column);
+	}
+	public function addTable($table) {
+		if($this->tables === null) {
+			$this->tables = new _hx_array(array());
+		}
+		$this->tables->push($table);
+	}
+	public function addWarning($warn) {
+		if($this->warnings === null) {
+			$this->warnings = new _hx_array(array());
+		}
+		$this->warnings->push($warn);
+	}
+	public function getWarning() {
+		return $this->warnings->join("\x0A");
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

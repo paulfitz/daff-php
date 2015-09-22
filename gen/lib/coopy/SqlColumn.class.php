@@ -1,13 +1,30 @@
 <?php
 
 class coopy_SqlColumn {
-	public function __construct() {}
+	public function __construct() {
+		if(!php_Boot::$skip_constructor) {
+		$this->name = "";
+		$this->primary = false;
+		$this->type_value = null;
+		$this->type_family = null;
+	}}
 	public $name;
 	public $primary;
+	public $type_value;
+	public $type_family;
+	public function setName($name) {
+		$this->name = $name;
+	}
+	public function setPrimaryKey($primary) {
+		$this->primary = $primary;
+	}
+	public function setType($value, $family) {
+		$this->type_value = $value;
+		$this->type_family = $family;
+	}
 	public function getName() {
-		if(!php_Boot::$skip_constructor) {
 		return $this->name;
-	}}
+	}
 	public function isPrimaryKey() {
 		return $this->primary;
 	}
@@ -23,12 +40,6 @@ class coopy_SqlColumn {
 			return $this->__toString();
 		else
 			throw new HException('Unable to call <'.$m.'>');
-	}
-	static function byNameAndPrimaryKey($name, $primary) {
-		$result = new coopy_SqlColumn();
-		$result->name = $name;
-		$result->primary = $primary;
-		return $result;
 	}
 	function __toString() { return $this->toString(); }
 }

@@ -1,7 +1,7 @@
 <?php
 
 class coopy_Index {
-	public function __construct() {
+	public function __construct($flags) {
 		if(!php_Boot::$skip_constructor) {
 		$this->items = new haxe_ds_StringMap();
 		$this->cols = new _hx_array(array());
@@ -9,6 +9,10 @@ class coopy_Index {
 		$this->top_freq = 0;
 		$this->height = 0;
 		$this->hdr = 0;
+		$this->ignore_whitespace = false;
+		if($flags !== null) {
+			$this->ignore_whitespace = $flags->ignore_whitespace;
+		}
 	}}
 	public $items;
 	public $keys;
@@ -18,6 +22,7 @@ class coopy_Index {
 	public $v;
 	public $indexed_table;
 	public $hdr;
+	public $ignore_whitespace;
 	public function addColumn($i) {
 		$this->cols->push($i);
 	}
@@ -75,6 +80,9 @@ class coopy_Index {
 				$k = $_g1++;
 				$d = $t->getCell($this->cols[$k], $i);
 				$txt = $this->v->toString($d);
+				if($this->ignore_whitespace) {
+					$txt = trim($txt);
+				}
 				if($k > 0) {
 					$wide .= " // ";
 				}
@@ -100,6 +108,9 @@ class coopy_Index {
 			while($_g1 < $_g) {
 				$k = $_g1++;
 				$txt = $row->getRowString($this->cols[$k]);
+				if($this->ignore_whitespace) {
+					$txt = trim($txt);
+				}
 				if($k > 0) {
 					$wide .= " // ";
 				}

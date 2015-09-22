@@ -4,10 +4,19 @@ class coopy_CompareTable {
 	public function __construct($comp) {
 		if(!php_Boot::$skip_constructor) {
 		$this->comp = $comp;
+		if($comp->compare_flags !== null) {
+			if($comp->compare_flags->parent !== null) {
+				$comp->p = $comp->compare_flags->parent;
+			}
+		}
 	}}
 	public $comp;
 	public $indexes;
 	public function run() {
+		if($this->useSql()) {
+			$this->comp->completed = true;
+			return false;
+		}
 		$more = $this->compareCore();
 		while($more && $this->comp->run_to_completion) {
 			$more = $this->compareCore();
@@ -26,6 +35,26 @@ class coopy_CompareTable {
 		return $this->comp;
 	}
 	public function alignCore($align) {
+		if($this->useSql()) {
+			$tab1 = null;
+			$tab2 = null;
+			$tab3 = null;
+			if($this->comp->p === null) {
+				$tab1 = $this->comp->a;
+				$tab2 = $this->comp->b;
+			} else {
+				$align->reference = new coopy_Alignment();
+				$tab1 = $this->comp->p;
+				$tab2 = $this->comp->b;
+				$tab3 = $this->comp->a;
+			}
+			$sc = new coopy_SqlCompare($tab1->getDatabase(), $tab1, $tab2, $tab3, $align);
+			$sc->apply();
+			if($this->comp->p !== null) {
+				$align->meta->reference = $align->reference->meta;
+			}
+			return;
+		}
 		if($this->comp->p === null) {
 			$this->alignCore2($align, $this->comp->a, $this->comp->b);
 			return;
@@ -85,8 +114,13 @@ class coopy_CompareTable {
 				unset($unit);
 			}
 		}
+		$index_top = null;
+		$pending_ct = $ha;
+		$reverse_pending_ct = $hb;
+		$used = new haxe_ds_IntMap();
+		$used_reverse = new haxe_ds_IntMap();
 		if($ids !== null) {
-			$index = new coopy_IndexPair();
+			$index_top = new coopy_IndexPair($this->comp->compare_flags);
 			$ids_as_map = new haxe_ds_StringMap();
 			{
 				$_g2 = 0;
@@ -108,28 +142,34 @@ class coopy_CompareTable {
 					$na = $av->toString($a->getCell($unit1->l, 0));
 					$nb = $av->toString($b->getCell($unit1->r, 0));
 					if($ids_as_map->exists($na) || $ids_as_map->exists($nb)) {
-						$index->addColumns($unit1->l, $unit1->r);
+						$index_top->addColumns($unit1->l, $unit1->r);
 						$align->addIndexColumns($unit1);
 					}
 					unset($unit1,$nb,$na);
 				}
 			}
-			$index->indexTables($a, $b, 1);
+			$index_top->indexTables($a, $b, 1);
 			if($this->indexes !== null) {
-				$this->indexes->push($index);
+				$this->indexes->push($index_top);
 			}
 			{
 				$_g4 = 0;
 				while($_g4 < $ha) {
 					$j = $_g4++;
-					$cross = $index->queryLocal($j);
+					$cross = $index_top->queryLocal($j);
 					$spot_a = $cross->spot_a;
 					$spot_b = $cross->spot_b;
 					if($spot_a !== 1 || $spot_b !== 1) {
 						continue;
 					}
-					$align->link($j, $cross->item_b->lst[0]);
-					unset($spot_b,$spot_a,$j,$cross);
+					$jb = $cross->item_b->lst[0];
+					$align->link($j, $jb);
+					$used->set($jb, 1);
+					if(!$used_reverse->exists($j)) {
+						$reverse_pending_ct--;
+					}
+					$used_reverse->set($j, 1);
+					unset($spot_b,$spot_a,$jb,$j,$cross);
 				}
 			}
 		} else {
@@ -177,9 +217,9 @@ class coopy_CompareTable {
 						unset($mem2,$mem,$i,$ct,$cb,$ca);
 					}
 				}
-				$sorter = array(new _hx_lambda(array(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$ignore, &$ra_header, &$rb_header, &$w), "coopy_CompareTable_0"), 'execute');
+				$sorter = array(new _hx_lambda(array(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$ignore, &$index_top, &$pending_ct, &$ra_header, &$rb_header, &$reverse_pending_ct, &$used, &$used_reverse, &$w), "coopy_CompareTable_0"), 'execute');
 				$columns_eval->sort($sorter);
-				$columns = Lambda::harray(Lambda::map($columns_eval, array(new _hx_lambda(array(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$ignore, &$ra_header, &$rb_header, &$sorter, &$w), "coopy_CompareTable_1"), 'execute')));
+				$columns = Lambda::harray(Lambda::map($columns_eval, array(new _hx_lambda(array(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$ignore, &$index_top, &$pending_ct, &$ra_header, &$rb_header, &$reverse_pending_ct, &$sorter, &$used, &$used_reverse, &$w), "coopy_CompareTable_1"), 'execute')));
 				$columns = $columns->slice(0, $N);
 			} else {
 				$_g12 = 0;
@@ -192,7 +232,6 @@ class coopy_CompareTable {
 			}
 			$top = Math::round(Math::pow(2, $columns->length));
 			$pending = new haxe_ds_IntMap();
-			$used = new haxe_ds_IntMap();
 			{
 				$_g7 = 0;
 				while($_g7 < $ha) {
@@ -201,10 +240,8 @@ class coopy_CompareTable {
 					unset($j3);
 				}
 			}
-			$pending_ct = $ha;
 			$added_columns = new haxe_ds_IntMap();
 			$index_ct = 0;
-			$index_top = null;
 			{
 				$_g8 = 0;
 				while($_g8 < $top) {
@@ -225,7 +262,7 @@ class coopy_CompareTable {
 						$kk >>= 1;
 						$at++;
 					}
-					$index1 = new coopy_IndexPair();
+					$index = new coopy_IndexPair($this->comp->compare_flags);
 					{
 						$_g23 = 0;
 						$_g13 = $active_columns->length;
@@ -233,7 +270,7 @@ class coopy_CompareTable {
 							$k1 = $_g23++;
 							$col = $active_columns[$k1];
 							$unit2 = $common_units[$col];
-							$index1->addColumns($unit2->l, $unit2->r);
+							$index->addColumns($unit2->l, $unit2->r);
 							if(!$added_columns->exists($col)) {
 								$align->addIndexColumns($unit2);
 								$added_columns->set($col, true);
@@ -242,9 +279,9 @@ class coopy_CompareTable {
 						}
 						unset($_g23,$_g13);
 					}
-					$index1->indexTables($a, $b, 1);
+					$index->indexTables($a, $b, 1);
 					if($k === $top - 1) {
-						$index_top = $index1;
+						$index_top = $index;
 					}
 					$h = $a->get_height();
 					if($b->get_height() > $h) {
@@ -253,7 +290,7 @@ class coopy_CompareTable {
 					if($h < 1) {
 						$h = 1;
 					}
-					$wide_top_freq = $index1->getTopFreq();
+					$wide_top_freq = $index->getTopFreq();
 					$ratio = $wide_top_freq;
 					$ratio /= $h + 20;
 					if($ratio >= 0.1) {
@@ -263,7 +300,7 @@ class coopy_CompareTable {
 					}
 					$index_ct++;
 					if($this->indexes !== null) {
-						$this->indexes->push($index1);
+						$this->indexes->push($index);
 					}
 					$fixed = new _hx_array(array());
 					if(null == $pending) throw new HException('null iterable');
@@ -271,7 +308,7 @@ class coopy_CompareTable {
 					while($__hx__it->hasNext()) {
 						unset($j4);
 						$j4 = $__hx__it->next();
-						$cross1 = $index1->queryLocal($j4);
+						$cross1 = $index->queryLocal($j4);
 						$spot_a1 = $cross1->spot_a;
 						$spot_b1 = $cross1->spot_b;
 						if($spot_a1 !== 1 || $spot_b1 !== 1) {
@@ -282,6 +319,10 @@ class coopy_CompareTable {
 							$fixed->push($j4);
 							$align->link($j4, $val);
 							$used->set($val, 1);
+							if(!$used_reverse->exists($j4)) {
+								$reverse_pending_ct--;
+							}
+							$used_reverse->set($j4, 1);
 						}
 						unset($val,$spot_b1,$spot_a1,$cross1);
 					}
@@ -296,66 +337,144 @@ class coopy_CompareTable {
 						}
 						unset($_g24,$_g14);
 					}
-					unset($wide_top_freq,$ratio,$kk,$k,$index1,$h,$fixed,$at,$active_columns);
+					unset($wide_top_freq,$ratio,$kk,$k,$index,$h,$fixed,$at,$active_columns);
 				}
 			}
-			if($index_top !== null) {
-				$offset = 0;
-				$scale = 1;
-				{
-					$_g9 = 0;
-					while($_g9 < 2) {
-						$sgn = $_g9++;
-						if($pending_ct > 0) {
-							$xb = null;
-							if($scale === -1 && $hb > 0) {
-								$xb = $hb - 1;
-							}
-							{
-								$_g15 = 0;
-								while($_g15 < $ha) {
-									$xa0 = $_g15++;
-									$xa = $xa0 * $scale + $offset;
-									$xb2 = $align->a2b($xa);
-									if($xb2 !== null) {
-										$xb = $xb2 + $scale;
-										if($xb >= $hb || $xb < 0) {
-											break;
-										}
-										continue;
-									}
-									if($xb === null) {
-										continue;
-									}
-									$ka = $index_top->localKey($xa);
-									$kb = $index_top->remoteKey($xb);
-									if($ka !== $kb) {
-										continue;
-									}
-									if($used->exists($xb)) {
-										continue;
-									}
-									$align->link($xa, $xb);
-									$used->set($xb, 1);
-									$pending_ct--;
-									$xb += $scale;
+		}
+		if($index_top !== null) {
+			$offset = 0;
+			$scale = 1;
+			{
+				$_g9 = 0;
+				while($_g9 < 2) {
+					$sgn = $_g9++;
+					if($pending_ct > 0) {
+						$xb = null;
+						if($scale === -1 && $hb > 0) {
+							$xb = $hb - 1;
+						}
+						{
+							$_g15 = 0;
+							while($_g15 < $ha) {
+								$xa0 = $_g15++;
+								$xa = $xa0 * $scale + $offset;
+								$xb2 = $align->a2b($xa);
+								if($xb2 !== null) {
+									$xb = $xb2 + $scale;
 									if($xb >= $hb || $xb < 0) {
 										break;
 									}
-									if($pending_ct === 0) {
+									continue;
+								}
+								if($xb === null) {
+									continue;
+								}
+								$ka = $index_top->localKey($xa);
+								$kb = $index_top->remoteKey($xb);
+								if($ka !== $kb) {
+									continue;
+								}
+								if($used->exists($xb)) {
+									continue;
+								}
+								$align->link($xa, $xb);
+								$used->set($xb, 1);
+								$used_reverse->set($xa, 1);
+								$pending_ct--;
+								$xb += $scale;
+								if($xb >= $hb || $xb < 0) {
+									break;
+								}
+								if($pending_ct === 0) {
+									break;
+								}
+								unset($xb2,$xa0,$xa,$kb,$ka);
+							}
+							unset($_g15);
+						}
+						unset($xb);
+					}
+					$offset = $ha - 1;
+					$scale = -1;
+					unset($sgn);
+				}
+			}
+			$offset = 0;
+			$scale = 1;
+			{
+				$_g10 = 0;
+				while($_g10 < 2) {
+					$sgn1 = $_g10++;
+					if($reverse_pending_ct > 0) {
+						$xa1 = null;
+						if($scale === -1 && $ha > 0) {
+							$xa1 = $ha - 1;
+						}
+						{
+							$_g16 = 0;
+							while($_g16 < $hb) {
+								$xb0 = $_g16++;
+								$xb1 = $xb0 * $scale + $offset;
+								$xa2 = $align->b2a($xb1);
+								if($xa2 !== null) {
+									$xa1 = $xa2 + $scale;
+									if($xa1 >= $ha || $xa1 < 0) {
 										break;
 									}
-									unset($xb2,$xa0,$xa,$kb,$ka);
+									continue;
 								}
-								unset($_g15);
+								if($xa1 === null) {
+									continue;
+								}
+								$ka1 = $index_top->localKey($xa1);
+								$kb1 = $index_top->remoteKey($xb1);
+								if($ka1 !== $kb1) {
+									continue;
+								}
+								if($used_reverse->exists($xa1)) {
+									continue;
+								}
+								$align->link($xa1, $xb1);
+								$used->set($xb1, 1);
+								$used_reverse->set($xa1, 1);
+								$reverse_pending_ct--;
+								$xa1 += $scale;
+								if($xa1 >= $ha || $xa1 < 0) {
+									break;
+								}
+								if($reverse_pending_ct === 0) {
+									break;
+								}
+								unset($xb1,$xb0,$xa2,$kb1,$ka1);
 							}
-							unset($xb);
+							unset($_g16);
 						}
-						$offset = $ha - 1;
-						$scale = -1;
-						unset($sgn);
+						unset($xa1);
 					}
+					$offset = $hb - 1;
+					$scale = -1;
+					unset($sgn1);
 				}
+			}
+		}
+		{
+			$_g17 = 1;
+			while($_g17 < $ha) {
+				$i2 = $_g17++;
+				if(!$used_reverse->exists($i2)) {
+					$align->link($i2, -1);
+				}
+				unset($i2);
+			}
+		}
+		{
+			$_g18 = 1;
+			while($_g18 < $hb) {
+				$i3 = $_g18++;
+				if(!$used->exists($i3)) {
+					$align->link(-1, $i3);
+				}
+				unset($i3);
 			}
 		}
 		if($ha > 0 && $hb > 0) {
@@ -382,62 +501,60 @@ class coopy_CompareTable {
 			$_g = 0;
 			while($_g < $slop) {
 				$ra = $_g++;
-				if($ra >= $a->get_height()) {
-					break;
-				}
 				{
 					$_g1 = 0;
 					while($_g1 < $slop) {
 						$rb = $_g1++;
-						if($rb >= $b->get_height()) {
-							break;
-						}
 						$ma = new haxe_ds_StringMap();
 						$mb = new haxe_ds_StringMap();
 						$ct = 0;
 						$uniques = 0;
-						{
-							$_g3 = 0;
-							$_g2 = $a->get_width();
-							while($_g3 < $_g2) {
-								$ca = $_g3++;
-								$key = $va->toString($a->getCell($ca, $ra));
-								if($ma->exists($key)) {
-									$ma->set($key, -1);
-									$uniques--;
-								} else {
-									$ma->set($key, $ca);
-									$uniques++;
+						if($ra < $a->get_height()) {
+							{
+								$_g3 = 0;
+								$_g2 = $a->get_width();
+								while($_g3 < $_g2) {
+									$ca = $_g3++;
+									$key = $va->toString($a->getCell($ca, $ra));
+									if($ma->exists($key)) {
+										$ma->set($key, -1);
+										$uniques--;
+									} else {
+										$ma->set($key, $ca);
+										$uniques++;
+									}
+									unset($key,$ca);
 								}
-								unset($key,$ca);
+								unset($_g3,$_g2);
 							}
-							unset($_g3,$_g2);
-						}
-						if($uniques > $ra_uniques) {
-							$ra_header = $ra;
-							$ra_uniques = $uniques;
+							if($uniques > $ra_uniques) {
+								$ra_header = $ra;
+								$ra_uniques = $uniques;
+							}
 						}
 						$uniques = 0;
-						{
-							$_g31 = 0;
-							$_g21 = $b->get_width();
-							while($_g31 < $_g21) {
-								$cb = $_g31++;
-								$key1 = $vb->toString($b->getCell($cb, $rb));
-								if($mb->exists($key1)) {
-									$mb->set($key1, -1);
-									$uniques--;
-								} else {
-									$mb->set($key1, $cb);
-									$uniques++;
+						if($rb < $b->get_height()) {
+							{
+								$_g31 = 0;
+								$_g21 = $b->get_width();
+								while($_g31 < $_g21) {
+									$cb = $_g31++;
+									$key1 = $vb->toString($b->getCell($cb, $rb));
+									if($mb->exists($key1)) {
+										$mb->set($key1, -1);
+										$uniques--;
+									} else {
+										$mb->set($key1, $cb);
+										$uniques++;
+									}
+									unset($key1,$cb);
 								}
-								unset($key1,$cb);
+								unset($_g31,$_g21);
 							}
-							unset($_g31,$_g21);
-						}
-						if($uniques > $rb_uniques) {
-							$rb_header = $rb;
-							$rb_uniques = $uniques;
+							if($uniques > $rb_uniques) {
+								$rb_header = $rb;
+								$rb_uniques = $uniques;
+							}
 						}
 						if(null == $ma) throw new HException('null iterable');
 						$__hx__it = $ma->keys();
@@ -484,10 +601,30 @@ class coopy_CompareTable {
 			$key3 = $__hx__it->next();
 			$i01 = $ma_best->get($key3);
 			$i11 = $mb_best->get($key3);
-			if($i11 !== null && $i01 !== null) {
+			if($i01 !== null && $i11 !== null) {
 				$align->link($i01, $i11);
+			} else {
+				if($i01 !== null) {
+					$align->link($i01, -1);
+				} else {
+					if($i11 !== null) {
+						$align->link(-1, $i11);
+					}
+				}
 			}
 			unset($i11,$i01);
+		}
+		if(null == $mb_best) throw new HException('null iterable');
+		$__hx__it = $mb_best->keys();
+		while($__hx__it->hasNext()) {
+			unset($key4);
+			$key4 = $__hx__it->next();
+			$i02 = $ma_best->get($key4);
+			$i12 = $mb_best->get($key4);
+			if($i02 === null && $i12 !== null) {
+				$align->link(-1, $i12);
+			}
+			unset($i12,$i02);
 		}
 		$align->headers($ra_header, $rb_header);
 	}
@@ -594,6 +731,12 @@ class coopy_CompareTable {
 	public function getIndexes() {
 		return $this->indexes;
 	}
+	public function useSql() {
+		if($this->comp->compare_flags === null) {
+			return false;
+		}
+		return $this->comp->compare_flags->diff_strategy === "sql";
+	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);
@@ -606,7 +749,7 @@ class coopy_CompareTable {
 	}
 	function __toString() { return 'coopy.CompareTable'; }
 }
-function coopy_CompareTable_0(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$ignore, &$ra_header, &$rb_header, &$w, $a1, $b1) {
+function coopy_CompareTable_0(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$ignore, &$index_top, &$pending_ct, &$ra_header, &$rb_header, &$reverse_pending_ct, &$used, &$used_reverse, &$w, $a1, $b1) {
 	{
 		if($a1->a[1] < $b1[1]) {
 			return 1;
@@ -623,7 +766,7 @@ function coopy_CompareTable_0(&$N, &$a, &$align, &$av, &$b, &$column_order, &$co
 		return 0;
 	}
 }
-function coopy_CompareTable_1(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$ignore, &$ra_header, &$rb_header, &$sorter, &$w, $v) {
+function coopy_CompareTable_1(&$N, &$a, &$align, &$av, &$b, &$column_order, &$columns, &$columns_eval, &$common_units, &$ha, &$hb, &$ids, &$ignore, &$index_top, &$pending_ct, &$ra_header, &$rb_header, &$reverse_pending_ct, &$sorter, &$used, &$used_reverse, &$w, $v) {
 	{
 		return $v[0];
 	}

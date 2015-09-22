@@ -41,8 +41,12 @@ class coopy_Alignment {
 	}
 	public function setRowlike($flag) {}
 	public function link($a, $b) {
-		$this->map_a2b->set($a, $b);
-		$this->map_b2a->set($b, $a);
+		if($a !== -1) {
+			$this->map_a2b->set($a, $b);
+		}
+		if($b !== -1) {
+			$this->map_b2a->set($b, $a);
+		}
 		$this->map_count++;
 	}
 	public function addIndexColumns($unit) {
@@ -64,7 +68,11 @@ class coopy_Alignment {
 		return $this->map_count;
 	}
 	public function toString() {
-		return "" . _hx_string_or_null($this->map_a2b->toString());
+		$result = "" . _hx_string_or_null($this->map_a2b->toString()) . " // " . _hx_string_or_null($this->map_b2a->toString());
+		if($this->reference !== null) {
+			$result .= " (" . Std::string($this->reference) . ")";
+		}
+		return $result;
 	}
 	public function toOrder() {
 		if($this->order_cache !== null) {
@@ -105,193 +113,149 @@ class coopy_Alignment {
 		return $this->ib;
 	}
 	public function toOrder3() {
-		$ref = $this->reference;
-		if($ref === null) {
-			$ref = new coopy_Alignment();
-			$ref->range($this->ha, $this->ha);
-			$ref->tables($this->ta, $this->ta);
-			{
-				$_g1 = 0;
-				$_g = $this->ha;
-				while($_g1 < $_g) {
-					$i = $_g1++;
-					$ref->link($i, $i);
-					unset($i);
-				}
-			}
-		}
-		$order = new coopy_Ordering();
+		$order = new _hx_array(array());
 		if($this->reference === null) {
-			$order->ignoreParent();
+			if(null == $this->map_a2b) throw new HException('null iterable');
+			$__hx__it = $this->map_a2b->keys();
+			while($__hx__it->hasNext()) {
+				unset($k);
+				$k = $__hx__it->next();
+				$unit = new coopy_Unit(null, null, null);
+				$unit->l = $k;
+				$unit->r = $this->a2b($k);
+				$order->push($unit);
+				unset($unit);
+			}
+			if(null == $this->map_b2a) throw new HException('null iterable');
+			$__hx__it = $this->map_b2a->keys();
+			while($__hx__it->hasNext()) {
+				unset($k1);
+				$k1 = $__hx__it->next();
+				if($this->b2a($k1) === -1) {
+					$unit1 = new coopy_Unit(null, null, null);
+					$unit1->l = -1;
+					$unit1->r = $k1;
+					$order->push($unit1);
+					unset($unit1);
+				}
+			}
+		} else {
+			if(null == $this->map_a2b) throw new HException('null iterable');
+			$__hx__it = $this->map_a2b->keys();
+			while($__hx__it->hasNext()) {
+				unset($k2);
+				$k2 = $__hx__it->next();
+				$unit2 = new coopy_Unit(null, null, null);
+				$unit2->p = $k2;
+				$unit2->l = $this->reference->a2b($k2);
+				$unit2->r = $this->a2b($k2);
+				$order->push($unit2);
+				unset($unit2);
+			}
+			if(null == $this->reference->map_b2a) throw new HException('null iterable');
+			$__hx__it = $this->reference->map_b2a->keys();
+			while($__hx__it->hasNext()) {
+				unset($k3);
+				$k3 = $__hx__it->next();
+				if($this->reference->b2a($k3) === -1) {
+					$unit3 = new coopy_Unit(null, null, null);
+					$unit3->p = -1;
+					$unit3->l = $k3;
+					$unit3->r = -1;
+					$order->push($unit3);
+					unset($unit3);
+				}
+			}
+			if(null == $this->map_b2a) throw new HException('null iterable');
+			$__hx__it = $this->map_b2a->keys();
+			while($__hx__it->hasNext()) {
+				unset($k4);
+				$k4 = $__hx__it->next();
+				if($this->b2a($k4) === -1) {
+					$unit4 = new coopy_Unit(null, null, null);
+					$unit4->p = -1;
+					$unit4->l = -1;
+					$unit4->r = $k4;
+					$order->push($unit4);
+					unset($unit4);
+				}
+			}
 		}
-		$xp = 0;
-		$xl = 0;
-		$xr = 0;
-		$hp = $this->ha;
-		$hl = $ref->hb;
-		$hr = $this->hb;
-		$vp = new haxe_ds_IntMap();
-		$vl = new haxe_ds_IntMap();
-		$vr = new haxe_ds_IntMap();
+		$top = $order->length;
+		$remotes = new _hx_array(array());
+		$locals = new _hx_array(array());
 		{
-			$_g2 = 0;
-			while($_g2 < $hp) {
-				$i1 = $_g2++;
-				$vp->set($i1, $i1);
-				unset($i1);
-			}
-		}
-		{
-			$_g3 = 0;
-			while($_g3 < $hl) {
-				$i2 = $_g3++;
-				$vl->set($i2, $i2);
-				unset($i2);
-			}
-		}
-		{
-			$_g4 = 0;
-			while($_g4 < $hr) {
-				$i3 = $_g4++;
-				$vr->set($i3, $i3);
-				unset($i3);
-			}
-		}
-		$ct_vp = $hp;
-		$ct_vl = $hl;
-		$ct_vr = $hr;
-		$prev = -1;
-		$ct = 0;
-		$max_ct = ($hp + $hl + $hr) * 10;
-		while($ct_vp > 0 || $ct_vl > 0 || $ct_vr > 0) {
-			$ct++;
-			if($ct > $max_ct) {
-				break;
-			}
-			if($xp >= $hp) {
-				$xp = 0;
-			}
-			if($xl >= $hl) {
-				$xl = 0;
-			}
-			if($xr >= $hr) {
-				$xr = 0;
-			}
-			if($xp < $hp && $ct_vp > 0) {
-				if($this->a2b($xp) === null && $ref->a2b($xp) === null) {
-					if($vp->exists($xp)) {
-						$order->add(-1, -1, $xp);
-						$prev = $xp;
-						$vp->remove($xp);
-						$ct_vp--;
-					}
-					$xp++;
-					continue;
-				}
-			}
-			$zl = null;
-			$zr = null;
-			if($xl < $hl && $ct_vl > 0) {
-				$zl = $ref->b2a($xl);
-				if($zl === null) {
-					if($vl->exists($xl)) {
-						$order->add($xl, -1, -1);
-						$vl->remove($xl);
-						$ct_vl--;
-					}
-					$xl++;
-					continue;
-				}
-			}
-			if($xr < $hr && $ct_vr > 0) {
-				$zr = $this->b2a($xr);
-				if($zr === null) {
-					if($vr->exists($xr)) {
-						$order->add(-1, $xr, -1);
-						$vr->remove($xr);
-						$ct_vr--;
-					}
-					$xr++;
-					continue;
-				}
-			}
-			if($zl !== null) {
-				if($this->a2b($zl) === null) {
-					if($vl->exists($xl)) {
-						$order->add($xl, -1, $zl);
-						$prev = $zl;
-						$vp->remove($zl);
-						$ct_vp--;
-						$vl->remove($xl);
-						$ct_vl--;
-						$xp = $zl + 1;
-					}
-					$xl++;
-					continue;
-				}
-			}
-			if($zr !== null) {
-				if($ref->a2b($zr) === null) {
-					if($vr->exists($xr)) {
-						$order->add(-1, $xr, $zr);
-						$prev = $zr;
-						$vp->remove($zr);
-						$ct_vp--;
-						$vr->remove($xr);
-						$ct_vr--;
-						$xp = $zr + 1;
-					}
-					$xr++;
-					continue;
-				}
-			}
-			if($zl !== null && $zr !== null && $this->a2b($zl) !== null && $ref->a2b($zr) !== null) {
-				if($zl === $prev + 1 || $zr !== $prev + 1) {
-					if($vr->exists($xr)) {
-						$order->add($ref->a2b($zr), $xr, $zr);
-						$prev = $zr;
-						$vp->remove($zr);
-						$ct_vp--;
-						{
-							$key = $ref->a2b($zr);
-							$vl->remove($key);
-							unset($key);
-						}
-						$ct_vl--;
-						$vr->remove($xr);
-						$ct_vr--;
-						$xp = $zr + 1;
-						$xl = $ref->a2b($zr) + 1;
-					}
-					$xr++;
-					continue;
+			$_g = 0;
+			while($_g < $top) {
+				$o = $_g++;
+				if(_hx_array_get($order, $o)->r >= 0) {
+					$remotes->push($o);
 				} else {
-					if($vl->exists($xl)) {
-						$order->add($xl, $this->a2b($zl), $zl);
-						$prev = $zl;
-						$vp->remove($zl);
-						$ct_vp--;
-						$vl->remove($xl);
-						$ct_vl--;
-						{
-							$key1 = $this->a2b($zl);
-							$vr->remove($key1);
-							unset($key1);
-						}
-						$ct_vr--;
-						$xp = $zl + 1;
-						$xr = $this->a2b($zl) + 1;
-					}
-					$xl++;
-					continue;
+					$locals->push($o);
 				}
+				unset($o);
 			}
-			$xp++;
-			$xl++;
-			$xr++;
-			unset($zr,$zl);
 		}
-		return $order;
+		$remote_sort = array(new _hx_lambda(array(&$locals, &$order, &$remotes, &$top), "coopy_Alignment_0"), 'execute');
+		$local_sort = array(new _hx_lambda(array(&$locals, &$order, &$remote_sort, &$remotes, &$top), "coopy_Alignment_1"), 'execute');
+		if($this->reference !== null) {
+			$remote_sort = array(new _hx_lambda(array(&$local_sort, &$locals, &$order, &$remote_sort, &$remotes, &$top), "coopy_Alignment_2"), 'execute');
+			$local_sort = array(new _hx_lambda(array(&$local_sort, &$locals, &$order, &$remote_sort, &$remotes, &$top), "coopy_Alignment_3"), 'execute');
+		}
+		$remotes->sort($remote_sort);
+		$locals->sort($local_sort);
+		$revised_order = new _hx_array(array());
+		$at_r = 0;
+		$at_l = 0;
+		{
+			$_g1 = 0;
+			while($_g1 < $top) {
+				$o4 = $_g1++;
+				if($at_r < $remotes->length && $at_l < $locals->length) {
+					$ur = $order[$remotes[$at_r]];
+					$ul = $order[$locals[$at_l]];
+					if($ul->l === -1 && $ul->p >= 0 && $ur->p >= 0) {
+						if($ur->p > $ul->p) {
+							$revised_order->push($ul);
+							$at_l++;
+							continue;
+						}
+					} else {
+						if($ur->l > $ul->l) {
+							$revised_order->push($ul);
+							$at_l++;
+							continue;
+						}
+					}
+					$revised_order->push($ur);
+					$at_r++;
+					continue;
+					unset($ur,$ul);
+				}
+				if($at_r < $remotes->length) {
+					$ur1 = $order[$remotes[$at_r]];
+					$revised_order->push($ur1);
+					$at_r++;
+					continue;
+					unset($ur1);
+				}
+				if($at_l < $locals->length) {
+					$ul1 = $order[$locals[$at_l]];
+					$revised_order->push($ul1);
+					$at_l++;
+					continue;
+					unset($ul1);
+				}
+				unset($o4);
+			}
+		}
+		$order = $revised_order;
+		$result = new coopy_Ordering();
+		$result->setList($order);
+		if($this->reference === null) {
+			$result->ignoreParent();
+		}
+		return $result;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
@@ -304,4 +268,67 @@ class coopy_Alignment {
 			throw new HException('Unable to call <'.$m.'>');
 	}
 	function __toString() { return $this->toString(); }
+}
+function coopy_Alignment_0(&$locals, &$order, &$remotes, &$top, $a, $b) {
+	{
+		return _hx_array_get($order, $a)->r - _hx_array_get($order, $b)->r;
+	}
+}
+function coopy_Alignment_1(&$locals, &$order, &$remote_sort, &$remotes, &$top, $a1, $b1) {
+	{
+		if($a1 === $b1) {
+			return 0;
+		}
+		if(_hx_array_get($order, $a1)->l >= 0 && _hx_array_get($order, $b1)->l >= 0) {
+			return _hx_array_get($order, $a1)->l - _hx_array_get($order, $b1)->l;
+		}
+		if(_hx_array_get($order, $a1)->l >= 0) {
+			return 1;
+		}
+		if(_hx_array_get($order, $b1)->l >= 0) {
+			return -1;
+		}
+		return $a1 - $b1;
+	}
+}
+function coopy_Alignment_2(&$local_sort, &$locals, &$order, &$remote_sort, &$remotes, &$top, $a2, $b2) {
+	{
+		if($a2 === $b2) {
+			return 0;
+		}
+		$o1 = _hx_array_get($order, $a2)->r - _hx_array_get($order, $b2)->r;
+		if(_hx_array_get($order, $a2)->p >= 0 && _hx_array_get($order, $b2)->p >= 0) {
+			$o2 = _hx_array_get($order, $a2)->p - _hx_array_get($order, $b2)->p;
+			if($o1 * $o2 < 0) {
+				return $o1;
+			}
+			$o3 = _hx_array_get($order, $a2)->l - _hx_array_get($order, $b2)->l;
+			return $o3;
+		}
+		return $o1;
+	}
+}
+function coopy_Alignment_3(&$local_sort, &$locals, &$order, &$remote_sort, &$remotes, &$top, $a3, $b3) {
+	{
+		if($a3 === $b3) {
+			return 0;
+		}
+		if(_hx_array_get($order, $a3)->l >= 0 && _hx_array_get($order, $b3)->l >= 0) {
+			$o11 = _hx_array_get($order, $a3)->l - _hx_array_get($order, $b3)->l;
+			if(_hx_array_get($order, $a3)->p >= 0 && _hx_array_get($order, $b3)->p >= 0) {
+				$o21 = _hx_array_get($order, $a3)->p - _hx_array_get($order, $b3)->p;
+				if($o11 * $o21 < 0) {
+					return $o11;
+				}
+				return $o21;
+			}
+		}
+		if(_hx_array_get($order, $a3)->l >= 0) {
+			return 1;
+		}
+		if(_hx_array_get($order, $b3)->l >= 0) {
+			return -1;
+		}
+		return $a3 - $b3;
+	}
 }

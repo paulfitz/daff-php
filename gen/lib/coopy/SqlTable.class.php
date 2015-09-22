@@ -1,11 +1,14 @@
 <?php
 
-class coopy_SqlTable implements coopy_Table{
+class coopy_SqlTable implements coopy_RowStream, coopy_Meta, coopy_Table{
 	public function __construct($db, $name, $helper = null) {
 		if(!php_Boot::$skip_constructor) {
 		$this->db = $db;
 		$this->name = $name;
 		$this->helper = $helper;
+		if($helper === null) {
+			$this->helper = $db->getHelper();
+		}
 		$this->cache = new haxe_ds_IntMap();
 		$this->h = -1;
 		$this->id2rid = null;
@@ -96,6 +99,10 @@ class coopy_SqlTable implements coopy_Table{
 			if($y >= 0) {
 				$y = $this->id2rid[$y];
 			}
+		} else {
+			if($y === 0) {
+				$y = -1;
+			}
 		}
 		if($y < 0) {
 			$this->getColumns();
@@ -149,7 +156,7 @@ class coopy_SqlTable implements coopy_Table{
 		}
 	}
 	public function setCell($x, $y, $c) {
-		haxe_Log::trace("SqlTable cannot set cells yet", _hx_anonymous(array("fileName" => "SqlTable.hx", "lineNumber" => 112, "className" => "coopy.SqlTable", "methodName" => "setCell")));
+		haxe_Log::trace("SqlTable cannot set cells yet", _hx_anonymous(array("fileName" => "SqlTable.hx", "lineNumber" => 115, "className" => "coopy.SqlTable", "methodName" => "setCell")));
 	}
 	public function getCellView() {
 		return new coopy_SimpleView();
@@ -178,18 +185,106 @@ class coopy_SqlTable implements coopy_Table{
 		if($this->h >= 0) {
 			return $this->h;
 		}
-		if($this->helper === null) {
-			return -1;
-		}
-		$this->id2rid = $this->helper->getRowIDs($this->db, $this->name);
-		$this->h = $this->id2rid->length + 1;
-		return $this->h;
+		return -1;
 	}
 	public function getData() {
 		return null;
 	}
 	public function hclone() {
 		return null;
+	}
+	public function getMeta() {
+		return $this;
+	}
+	public function alterColumns($columns) {
+		$result = $this->helper->alterColumns($this->db, $this->name, $columns);
+		$this->columns = null;
+		return $result;
+	}
+	public function changeRow($rc) {
+		if($this->helper === null) {
+			haxe_Log::trace("No sql helper", _hx_anonymous(array("fileName" => "SqlTable.hx", "lineNumber" => 179, "className" => "coopy.SqlTable", "methodName" => "changeRow")));
+			return false;
+		}
+		if($rc->action === "+++") {
+			return $this->helper->insert($this->db, $this->name, $rc->val);
+		} else {
+			if($rc->action === "---") {
+				return $this->helper->delete($this->db, $this->name, $rc->cond);
+			} else {
+				if($rc->action === "->") {
+					return $this->helper->update($this->db, $this->name, $rc->cond, $rc->val);
+				}
+			}
+		}
+		return false;
+	}
+	public function asTable() {
+		$pct = 3;
+		$this->getColumns();
+		$w = $this->columnNames->length;
+		$mt = new coopy_SimpleTable($w + 1, $pct);
+		$mt->setCell(0, 0, "@");
+		$mt->setCell(0, 1, "type");
+		$mt->setCell(0, 2, "pkey");
+		{
+			$_g = 0;
+			while($_g < $w) {
+				$x = $_g++;
+				$i = $x + 1;
+				$mt->setCell($i, 0, $this->columnNames[$x]);
+				$mt->setCell($i, 1, _hx_array_get($this->columns, $x)->type_value);
+				$mt->setCell($i, 2, ((_hx_array_get($this->columns, $x)->primary) ? 1 : 0));
+				unset($x,$i);
+			}
+		}
+		return $mt;
+	}
+	public function useForColumnChanges() {
+		return true;
+	}
+	public function useForRowChanges() {
+		return true;
+	}
+	public function cloneMeta($table = null) {
+		return null;
+	}
+	public function applyFlags($flags) {
+		return false;
+	}
+	public function getDatabase() {
+		return $this->db;
+	}
+	public function getRowStream() {
+		$this->getColumns();
+		$this->db->begin("SELECT * FROM " . _hx_string_or_null($this->getQuotedTableName()) . " ORDER BY ?", (new _hx_array(array($this->db->rowid()))), $this->columnNames);
+		return $this;
+	}
+	public function fetchRow() {
+		if($this->db->read()) {
+			$row = new haxe_ds_StringMap();
+			{
+				$_g1 = 0;
+				$_g = $this->columnNames->length;
+				while($_g1 < $_g) {
+					$i = $_g1++;
+					{
+						$v = $this->db->get($i);
+						$row->set($this->columnNames[$i], $v);
+						$v;
+						unset($v);
+					}
+					unset($i);
+				}
+			}
+			return $row;
+		}
+		$this->db->end();
+		return null;
+	}
+	public function fetchColumns() {
+		$this->getColumns();
+		return $this->columnNames;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
