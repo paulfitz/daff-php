@@ -35,7 +35,7 @@ class coopy_NestedCellBuilder implements coopy_CellBuilder{
 		}
 		return $x;
 	}
-	public function links($unit) {
+	public function links($unit, $row_like) {
 		$h = $this->view->makeHash();
 		if($unit->p >= -1) {
 			$this->view->hashSet($h, "before", $this->negToNull($unit->p));

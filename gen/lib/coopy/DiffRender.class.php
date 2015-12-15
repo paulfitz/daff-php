@@ -113,7 +113,7 @@ class coopy_DiffRender {
 				if($row_mode === "spec") {
 					$change_row = $row;
 				}
-				if($row_mode === "header" || $row_mode === "spec" || $row_mode === "index") {
+				if($row_mode === "header" || $row_mode === "spec" || $row_mode === "index" || $row_mode === "meta") {
 					$this->setSection("head");
 				} else {
 					$this->setSection("body");
@@ -138,7 +138,7 @@ class coopy_DiffRender {
 		return $this;
 	}
 	public function sampleCss() {
-		return ".highlighter .add { \x0A  background-color: #7fff7f;\x0A}\x0A\x0A.highlighter .remove { \x0A  background-color: #ff7f7f;\x0A}\x0A\x0A.highlighter td.modify { \x0A  background-color: #7f7fff;\x0A}\x0A\x0A.highlighter td.conflict { \x0A  background-color: #f00;\x0A}\x0A\x0A.highlighter .spec { \x0A  background-color: #aaa;\x0A}\x0A\x0A.highlighter .move { \x0A  background-color: #ffa;\x0A}\x0A\x0A.highlighter .null { \x0A  color: #888;\x0A}\x0A\x0A.highlighter table { \x0A  border-collapse:collapse;\x0A}\x0A\x0A.highlighter td, .highlighter th {\x0A  border: 1px solid #2D4068;\x0A  padding: 3px 7px 2px;\x0A}\x0A\x0A.highlighter th, .highlighter .header { \x0A  background-color: #aaf;\x0A  font-weight: bold;\x0A  padding-bottom: 4px;\x0A  padding-top: 5px;\x0A  text-align:left;\x0A}\x0A\x0A.highlighter tr.header th {\x0A  border-bottom: 2px solid black;\x0A}\x0A\x0A.highlighter tr.index td, .highlighter .index, .highlighter tr.header th.index {\x0A  background-color: white;\x0A  border: none;\x0A}\x0A\x0A.highlighter .gap {\x0A  color: #888;\x0A}\x0A\x0A.highlighter td {\x0A  empty-cells: show;\x0A}\x0A";
+		return ".highlighter .add { \x0A  background-color: #7fff7f;\x0A}\x0A\x0A.highlighter .remove { \x0A  background-color: #ff7f7f;\x0A}\x0A\x0A.highlighter td.modify { \x0A  background-color: #7f7fff;\x0A}\x0A\x0A.highlighter td.conflict { \x0A  background-color: #f00;\x0A}\x0A\x0A.highlighter .spec { \x0A  background-color: #aaa;\x0A}\x0A\x0A.highlighter .move { \x0A  background-color: #ffa;\x0A}\x0A\x0A.highlighter .null { \x0A  color: #888;\x0A}\x0A\x0A.highlighter table { \x0A  border-collapse:collapse;\x0A}\x0A\x0A.highlighter td, .highlighter th {\x0A  border: 1px solid #2D4068;\x0A  padding: 3px 7px 2px;\x0A}\x0A\x0A.highlighter th, .highlighter .header, .highlighter .meta {\x0A  background-color: #aaf;\x0A  font-weight: bold;\x0A  padding-bottom: 4px;\x0A  padding-top: 5px;\x0A  text-align:left;\x0A}\x0A\x0A.highlighter tr.header th {\x0A  border-bottom: 2px solid black;\x0A}\x0A\x0A.highlighter tr.index td, .highlighter .index, .highlighter tr.header th.index {\x0A  background-color: white;\x0A  border: none;\x0A}\x0A\x0A.highlighter .gap {\x0A  color: #888;\x0A}\x0A\x0A.highlighter td {\x0A  empty-cells: show;\x0A}\x0A";
 	}
 	public function completeHtml() {
 		$this->text_to_insert->insert(0, "<!DOCTYPE html>\x0A<html>\x0A<head>\x0A<meta charset='utf-8'>\x0A<style TYPE='text/css'>\x0A");
@@ -171,7 +171,7 @@ class coopy_DiffRender {
 		$cell->pretty_separator = "";
 		$cell->conflicted = false;
 		$cell->updated = false;
-		$cell->pvalue = $cell->lvalue = $cell->rvalue = null;
+		$cell->meta = $cell->pvalue = $cell->lvalue = $cell->rvalue = null;
 		$cell->value = $value;
 		if($cell->value === null) {
 			$cell->value = "";
@@ -182,6 +182,14 @@ class coopy_DiffRender {
 		}
 		if($vcol === null) {
 			$vcol = "";
+		}
+		if(strlen($vrow) >= 3 && _hx_char_at($vrow, 0) === "@" && _hx_char_at($vrow, 1) !== "@") {
+			$idx = _hx_index_of($vrow, "@", 1);
+			if($idx >= 0) {
+				$cell->meta = _hx_substr($vrow, 1, $idx - 1);
+				$vrow = _hx_substr($vrow, $idx + 1, strlen($vrow));
+				$cell->category = "meta";
+			}
 		}
 		$removed_column = false;
 		if($vrow === ":") {

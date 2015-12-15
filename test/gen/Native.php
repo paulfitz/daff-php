@@ -62,5 +62,14 @@ class harness_Native {
 	static function getHashKey($h, $k) {
 		return $h[$k];
 	}
+	static function wrap($callback) {
+		return false;
+	}
+	static function hasSqlite() {
+		return false;
+	}
+	static function openSqlite($name) {
+		return null;
+	}
 	function __toString() { return 'harness.Native'; }
 }

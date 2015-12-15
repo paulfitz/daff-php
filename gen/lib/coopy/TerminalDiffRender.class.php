@@ -24,6 +24,7 @@ class coopy_TerminalDiffRender {
 		$this->v = $t->getCellView();
 		$this->codes = new haxe_ds_StringMap();
 		$this->codes->set("header", "\x1B[0;1m");
+		$this->codes->set("meta", "\x1B[0;1m");
 		$this->codes->set("spec", "\x1B[35;1m");
 		$this->codes->set("add", "\x1B[32;1m");
 		$this->codes->set("conflict", "\x1B[33;1m");

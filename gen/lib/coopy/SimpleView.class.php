@@ -27,7 +27,7 @@ class coopy_SimpleView implements coopy_View{
 	public function makeHash() {
 		return new haxe_ds_StringMap();
 	}
-	public function hashSet($h, $str, $d) {
+	public function hashSet(&$h, $str, $d) {
 		$hh = $h;
 		{
 			$value = $d;

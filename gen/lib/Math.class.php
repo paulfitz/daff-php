@@ -20,6 +20,9 @@ class Math {
 	static function round($v) {
 		return (int) floor($v + 0.5);
 	}
+	static function floor($v) {
+		return (int) floor($v);
+	}
 	static function ceil($v) {
 		return (int) ceil($v);
 	}

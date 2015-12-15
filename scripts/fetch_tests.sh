@@ -24,3 +24,7 @@ for php in `cd $src/lib/harness; find . -iname "*.php"`; do
 	cp -v $src/lib/harness/$php test/gen/$name
     fi
 done
+
+# no sql support in daff-php yet
+rm -f test/gen/SqlTest.php
+
