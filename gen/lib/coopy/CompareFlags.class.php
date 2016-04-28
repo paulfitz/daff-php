@@ -23,6 +23,8 @@ class coopy_CompareFlags {
 		$this->parent = null;
 		$this->count_like_a_spreadsheet = true;
 		$this->ignore_whitespace = false;
+		$this->ignore_case = false;
+		$this->terminal_format = null;
 	}}
 	public $ordered;
 	public $show_unchanged;
@@ -39,11 +41,14 @@ class coopy_CompareFlags {
 	public $allow_nested_cells;
 	public $warnings;
 	public $diff_strategy;
+	public $padding_strategy;
 	public $show_meta;
 	public $show_unchanged_meta;
 	public $parent;
 	public $count_like_a_spreadsheet;
 	public $ignore_whitespace;
+	public $ignore_case;
+	public $terminal_format;
 	public function filter($act, $allow) {
 		if($this->acts === null) {
 			$this->acts = new haxe_ds_StringMap();

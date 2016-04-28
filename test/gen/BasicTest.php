@@ -26,6 +26,12 @@ class harness_BasicTest extends haxe_unit_TestCase {
 		$highlighter->hilite($table_diff);
 		$this->assertEquals("" . Std::string($table_diff->getCell(0, 4)), "->", _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 41, "className" => "harness.BasicTest", "methodName" => "testBasic")));
 	}
+	public function testBasicModern() {
+		$table1 = harness_Native::table($this->data1);
+		$table2 = harness_Native::table($this->data2);
+		$data_diff = coopy_Coopy::diff($table1, $table2, null);
+		$this->assertEquals("" . Std::string($data_diff->getCell(0, 4)), "->", _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 48, "className" => "harness.BasicTest", "methodName" => "testBasicModern")));
+	}
 	public function testNamedID() {
 		$table1 = harness_Native::table($this->data1);
 		$table2 = harness_Native::table($this->data2);
@@ -36,17 +42,17 @@ class harness_BasicTest extends haxe_unit_TestCase {
 		$table_diff = harness_Native::table($data_diff);
 		$highlighter = new coopy_TableDiff($alignment, $flags);
 		$highlighter->hilite($table_diff);
-		$this->assertEquals("" . Std::string($table_diff->getCell(3, 6)), "Barcelona", _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 54, "className" => "harness.BasicTest", "methodName" => "testNamedID")));
+		$this->assertEquals("" . Std::string($table_diff->getCell(3, 6)), "Barcelona", _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 61, "className" => "harness.BasicTest", "methodName" => "testNamedID")));
 	}
 	public function testCSV() {
 		$txt = "name,age\x0APaul,\"7,9\"\x0A\"Sam\x0ASpace\",\"\"\"\"\x0A";
 		$tab = harness_Native::table((new _hx_array(array())));
 		$csv = new coopy_Csv(null);
 		$csv->parseTable($txt, $tab);
-		$this->assertEquals(3, $tab->get_height(), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 62, "className" => "harness.BasicTest", "methodName" => "testCSV")));
-		$this->assertEquals(2, $tab->get_width(), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 63, "className" => "harness.BasicTest", "methodName" => "testCSV")));
-		$this->assertEquals("Paul", $tab->getCell(0, 1), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 64, "className" => "harness.BasicTest", "methodName" => "testCSV")));
-		$this->assertEquals("\"", $tab->getCell(1, 2), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 65, "className" => "harness.BasicTest", "methodName" => "testCSV")));
+		$this->assertEquals(3, $tab->get_height(), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 69, "className" => "harness.BasicTest", "methodName" => "testCSV")));
+		$this->assertEquals(2, $tab->get_width(), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 70, "className" => "harness.BasicTest", "methodName" => "testCSV")));
+		$this->assertEquals("Paul", $tab->getCell(0, 1), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 71, "className" => "harness.BasicTest", "methodName" => "testCSV")));
+		$this->assertEquals("\"", $tab->getCell(1, 2), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 72, "className" => "harness.BasicTest", "methodName" => "testCSV")));
 	}
 	public function testEmpty() {
 		$table1 = harness_Native::table($this->data1);
@@ -60,7 +66,7 @@ class harness_BasicTest extends haxe_unit_TestCase {
 		$table3 = $table1->hclone();
 		$patcher = new coopy_HighlightPatch($table3, $table_diff, null);
 		$patcher->apply();
-		$this->assertEquals(0, $table3->get_height(), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 80, "className" => "harness.BasicTest", "methodName" => "testEmpty")));
+		$this->assertEquals(0, $table3->get_height(), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 87, "className" => "harness.BasicTest", "methodName" => "testEmpty")));
 	}
 	public function testNestedOutput() {
 		$table1 = harness_Native::table($this->data1);
@@ -74,11 +80,11 @@ class harness_BasicTest extends haxe_unit_TestCase {
 		$highlighter->hilite($table_diff);
 		$update = $table_diff->getCell(3, 4);
 		$view = $table_diff->getCellView();
-		$this->assertTrue($view->isHash($update), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 96, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
-		$this->assertEquals("Barcelona", $view->hashGet($update, "before"), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 97, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
-		$this->assertEquals("Madrid", $view->hashGet($update, "after"), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 98, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
-		$this->assertEquals("Barcelona", harness_Native::getHashKey($update, "before"), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 99, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
-		$this->assertEquals("Madrid", harness_Native::getHashKey($update, "after"), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 100, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
+		$this->assertTrue($view->isHash($update), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 103, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
+		$this->assertEquals("Barcelona", $view->hashGet($update, "before"), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 104, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
+		$this->assertEquals("Madrid", $view->hashGet($update, "after"), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 105, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
+		$this->assertEquals("Barcelona", harness_Native::getHashKey($update, "before"), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 106, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
+		$this->assertEquals("Madrid", harness_Native::getHashKey($update, "after"), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 107, "className" => "harness.BasicTest", "methodName" => "testNestedOutput")));
 	}
 	public function testNestedOutputHtml() {
 		$table1 = harness_Native::table($this->data1);
@@ -94,7 +100,7 @@ class harness_BasicTest extends haxe_unit_TestCase {
 		$highlighter2->hilite($table_diff2);
 		$render1 = _hx_deref(new coopy_DiffRender())->render($table_diff1)->html();
 		$render2 = _hx_deref(new coopy_DiffRender())->render($table_diff2)->html();
-		$this->assertEquals($render1, $render2, _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 117, "className" => "harness.BasicTest", "methodName" => "testNestedOutputHtml")));
+		$this->assertEquals($render1, $render2, _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 124, "className" => "harness.BasicTest", "methodName" => "testNestedOutputHtml")));
 	}
 	public function testThreeWay() {
 		$flags = new coopy_CompareFlags();
@@ -106,7 +112,18 @@ class harness_BasicTest extends haxe_unit_TestCase {
 		$out = coopy_Coopy::diff($table2, $table3, $flags);
 		$table2b = $table2->hclone();
 		coopy_Coopy::patch($table2b, $out, null);
-		$this->assertTrue(coopy_SimpleTable::tableIsSimilar($table4, $table2b), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 130, "className" => "harness.BasicTest", "methodName" => "testThreeWay")));
+		$this->assertTrue(coopy_SimpleTable::tableIsSimilar($table4, $table2b), _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 137, "className" => "harness.BasicTest", "methodName" => "testThreeWay")));
+	}
+	public function testAnsiOutput() {
+		$table1 = harness_Native::table($this->data1);
+		$table2 = harness_Native::table($this->data2);
+		$txt = coopy_Coopy::diffAsAnsi($table1, $table2, null);
+		$this->assertTrue(_hx_index_of($txt, "Germany", null) >= 0, _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 144, "className" => "harness.BasicTest", "methodName" => "testAnsiOutput")));
+	}
+	public function testStraySpaceInCsv() {
+		$csv = new coopy_Csv(null);
+		$tab = $csv->makeTable("id,color\x0A" . "15,red\x0A" . "13,mauve,,,\x0A" . "2,green\x0A");
+		$this->assertEquals($tab->get_width(), 2, _hx_anonymous(array("fileName" => "BasicTest.hx", "lineNumber" => 153, "className" => "harness.BasicTest", "methodName" => "testStraySpaceInCsv")));
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

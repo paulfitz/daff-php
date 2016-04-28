@@ -1,15 +1,27 @@
 <?php
 
 class coopy_TerminalDiffRender {
-	public function __construct() {
+	public function __construct($flags = null) {
 		if(!php_Boot::$skip_constructor) {
 		$this->align_columns = true;
+		$this->wide_columns = false;
+		$this->flags = $flags;
+		if($flags !== null) {
+			if($flags->padding_strategy === "dense") {
+				$this->align_columns = false;
+			}
+			if($flags->padding_strategy === "sparse") {
+				$this->wide_columns = true;
+			}
+		}
 	}}
 	public $codes;
 	public $t;
 	public $csv;
 	public $v;
 	public $align_columns;
+	public $wide_columns;
+	public $flags;
 	public function alignColumns($enable) {
 		$this->align_columns = $enable;
 	}
@@ -39,6 +51,8 @@ class coopy_TerminalDiffRender {
 			$_g = 0;
 			while($_g < $h) {
 				$y = $_g++;
+				$target = 0;
+				$at = 0;
 				{
 					$_g1 = 0;
 					while($_g1 < $w) {
@@ -46,19 +60,25 @@ class coopy_TerminalDiffRender {
 						if($x > 0) {
 							$txt .= _hx_string_or_null($this->codes->get("minor")) . "," . _hx_string_or_null($this->codes->get("done"));
 						}
+						if($sizes !== null) {
+							$spaces = $target - $at;
+							{
+								$_g2 = 0;
+								while($_g2 < $spaces) {
+									$i = $_g2++;
+									$txt .= " ";
+									$at++;
+									unset($i);
+								}
+								unset($_g2);
+							}
+							unset($spaces);
+						}
 						$txt .= _hx_string_or_null($this->getText($x, $y, true));
 						if($sizes !== null) {
 							$bit = $this->getText($x, $y, false);
-							{
-								$_g3 = 0;
-								$_g2 = $sizes->a[$x] - strlen($bit);
-								while($_g3 < $_g2) {
-									$i = $_g3++;
-									$txt .= " ";
-									unset($i);
-								}
-								unset($_g3,$_g2);
-							}
+							$at += strlen($bit);
+							$target += $sizes[$x];
 							unset($bit);
 						}
 						unset($x);
@@ -66,7 +86,7 @@ class coopy_TerminalDiffRender {
 					unset($_g1);
 				}
 				$txt .= "\x0D\x0A";
-				unset($y);
+				unset($y,$target,$at);
 			}
 		}
 		$this->t = null;
@@ -167,6 +187,9 @@ class coopy_TerminalDiffRender {
 					if($most < $mmin) {
 						$most = $mmin;
 					}
+				}
+				if($this->wide_columns) {
+					$most = $full;
 				}
 				$sizes->push($most);
 				$total += $most;

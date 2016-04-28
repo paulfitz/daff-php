@@ -110,8 +110,28 @@ class coopy_Csv {
 				$tab->resize($w, $h);
 			}
 			if($at >= $w) {
-				$w = $at + 1;
-				$tab->resize($w, $h);
+				if($yat > 0) {
+					if($cell !== "" && $cell !== null) {
+						$context = "";
+						{
+							$_g = 0;
+							while($_g < $w) {
+								$i = $_g++;
+								if($i > 0) {
+									$context .= ",";
+								}
+								$context .= Std::string($tab->getCell($i, $yat));
+								unset($i);
+							}
+							unset($_g);
+						}
+						haxe_Log::trace("Ignored overflowing row " . _hx_string_rec($yat, "") . " with cell '" . _hx_string_or_null($cell) . "' after: " . _hx_string_or_null($context), _hx_anonymous(array("fileName" => "Csv.hx", "lineNumber" => 137, "className" => "coopy.Csv", "methodName" => "parseTable")));
+						unset($context);
+					}
+				} else {
+					$w = $at + 1;
+					$tab->resize($w, $h);
+				}
 			}
 			$tab->setCell($at, $h - 1, $cell);
 			$at++;
@@ -168,7 +188,7 @@ class coopy_Csv {
 							break;
 							unset($ch2);
 						}
-						if($ch === 34 || $ch === 39) {
+						if($ch === 34) {
 							if($i === $this->cursor) {
 								$quoting = true;
 								$quote = $ch;

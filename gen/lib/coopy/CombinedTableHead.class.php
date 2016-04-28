@@ -62,6 +62,9 @@ class coopy_CombinedTableHead implements coopy_Table{
 	public function hclone() {
 		return null;
 	}
+	public function create() {
+		return null;
+	}
 	public function getMeta() {
 		return null;
 	}

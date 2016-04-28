@@ -9,9 +9,11 @@ class coopy_Alignment {
 		$this->map_count = 0;
 		$this->reference = null;
 		$this->meta = null;
+		$this->comp = null;
 		$this->order_cache_has_reference = false;
 		$this->ia = -1;
 		$this->ib = -1;
+		$this->marked_as_identical = false;
 	}}
 	public $map_a2b;
 	public $map_b2a;
@@ -25,8 +27,12 @@ class coopy_Alignment {
 	public $order_cache;
 	public $order_cache_has_reference;
 	public $index_columns;
+	public $marked_as_identical;
 	public $reference;
 	public $meta;
+	public $comp;
+	public $has_addition;
+	public $has_removal;
 	public function range($ha, $hb) {
 		$this->ha = $ha;
 		$this->hb = $hb;
@@ -43,9 +49,13 @@ class coopy_Alignment {
 	public function link($a, $b) {
 		if($a !== -1) {
 			$this->map_a2b->set($a, $b);
+		} else {
+			$this->has_addition = true;
 		}
 		if($b !== -1) {
 			$this->map_b2a->set($b, $a);
+		} else {
+			$this->has_removal = true;
 		}
 		$this->map_count++;
 	}
@@ -256,6 +266,12 @@ class coopy_Alignment {
 			$result->ignoreParent();
 		}
 		return $result;
+	}
+	public function markIdentical() {
+		$this->marked_as_identical = true;
+	}
+	public function isMarkedAsIdentical() {
+		return $this->marked_as_identical;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

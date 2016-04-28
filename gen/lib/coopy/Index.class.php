@@ -10,8 +10,10 @@ class coopy_Index {
 		$this->height = 0;
 		$this->hdr = 0;
 		$this->ignore_whitespace = false;
+		$this->ignore_case = false;
 		if($flags !== null) {
 			$this->ignore_whitespace = $flags->ignore_whitespace;
+			$this->ignore_case = $flags->ignore_case;
 		}
 	}}
 	public $items;
@@ -23,6 +25,7 @@ class coopy_Index {
 	public $indexed_table;
 	public $hdr;
 	public $ignore_whitespace;
+	public $ignore_case;
 	public function addColumn($i) {
 		$this->cols->push($i);
 	}
@@ -83,6 +86,9 @@ class coopy_Index {
 				if($this->ignore_whitespace) {
 					$txt = trim($txt);
 				}
+				if($this->ignore_case) {
+					$txt = strtolower($txt);
+				}
 				if($k > 0) {
 					$wide .= " // ";
 				}
@@ -110,6 +116,9 @@ class coopy_Index {
 				$txt = $row->getRowString($this->cols[$k]);
 				if($this->ignore_whitespace) {
 					$txt = trim($txt);
+				}
+				if($this->ignore_case) {
+					$txt = strtolower($txt);
 				}
 				if($k > 0) {
 					$wide .= " // ";

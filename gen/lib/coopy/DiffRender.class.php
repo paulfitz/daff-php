@@ -60,7 +60,11 @@ class coopy_DiffRender {
 			$cell_decorate = " class=\"" . _hx_string_or_null($mode) . "\"";
 		}
 		$this->insert(_hx_string_or_null($this->td_open) . _hx_string_or_null($cell_decorate) . ">");
-		$this->insert($txt);
+		if($txt !== null) {
+			$this->insert($txt);
+		} else {
+			$this->insert("null");
+		}
 		$this->insert($this->td_close);
 	}
 	public function endRow() {
@@ -77,6 +81,7 @@ class coopy_DiffRender {
 		return $this->html();
 	}
 	public function render($tab) {
+		$tab = coopy_Coopy::tablify($tab);
 		if($tab->get_width() === 0 || $tab->get_height() === 0) {
 			return $this;
 		}
@@ -136,6 +141,30 @@ class coopy_DiffRender {
 		$render->endTable();
 		return $this;
 	}
+	public function renderTables($tabs) {
+		$order = $tabs->getOrder();
+		if($order->length === 0 || $tabs->hasInsDel()) {
+			$this->render($tabs->one());
+		}
+		{
+			$_g1 = 1;
+			$_g = $order->length;
+			while($_g1 < $_g) {
+				$i = $_g1++;
+				$name = $order[$i];
+				$tab = $tabs->get($name);
+				if($tab->get_height() <= 1) {
+					continue;
+				}
+				$this->insert("<h3>");
+				$this->insert($name);
+				$this->insert("</h3>\x0A");
+				$this->render($tab);
+				unset($tab,$name,$i);
+			}
+		}
+		return $this;
+	}
 	public function sampleCss() {
 		return ".highlighter .add { \x0A  background-color: #7fff7f;\x0A}\x0A\x0A.highlighter .remove { \x0A  background-color: #ff7f7f;\x0A}\x0A\x0A.highlighter td.modify { \x0A  background-color: #7f7fff;\x0A}\x0A\x0A.highlighter td.conflict { \x0A  background-color: #f00;\x0A}\x0A\x0A.highlighter .spec { \x0A  background-color: #aaa;\x0A}\x0A\x0A.highlighter .move { \x0A  background-color: #ffa;\x0A}\x0A\x0A.highlighter .null { \x0A  color: #888;\x0A}\x0A\x0A.highlighter table { \x0A  border-collapse:collapse;\x0A}\x0A\x0A.highlighter td, .highlighter th {\x0A  border: 1px solid #2D4068;\x0A  padding: 3px 7px 2px;\x0A}\x0A\x0A.highlighter th, .highlighter .header, .highlighter .meta {\x0A  background-color: #aaf;\x0A  font-weight: bold;\x0A  padding-bottom: 4px;\x0A  padding-top: 5px;\x0A  text-align:left;\x0A}\x0A\x0A.highlighter tr.header th {\x0A  border-bottom: 2px solid black;\x0A}\x0A\x0A.highlighter tr.index td, .highlighter .index, .highlighter tr.header th.index {\x0A  background-color: white;\x0A  border: none;\x0A}\x0A\x0A.highlighter .gap {\x0A  color: #888;\x0A}\x0A\x0A.highlighter td {\x0A  empty-cells: show;\x0A}\x0A";
 	}
@@ -160,10 +189,6 @@ class coopy_DiffRender {
 			$offset = 0;
 		}
 		$nested = $view->isHash($raw);
-		$value = null;
-		if(!$nested) {
-			$value = $view->toString($raw);
-		}
 		$cell->category = "";
 		$cell->category_given_tr = "";
 		$cell->separator = "";
@@ -171,10 +196,7 @@ class coopy_DiffRender {
 		$cell->conflicted = false;
 		$cell->updated = false;
 		$cell->meta = $cell->pvalue = $cell->lvalue = $cell->rvalue = null;
-		$cell->value = $value;
-		if($cell->value === null) {
-			$cell->value = "";
-		}
+		$cell->value = $raw;
 		$cell->pretty_value = $cell->value;
 		if($vrow === null) {
 			$vrow = "";
@@ -230,14 +252,18 @@ class coopy_DiffRender {
 									if($part === null) {
 										$part = $full;
 									}
-									if($nested || _hx_index_of($cell->value, $part, null) >= 0) {
+									$str = $view->toString($cell->value);
+									if($str === null) {
+										$str = "";
+									}
+									if($nested || _hx_index_of($str, $part, null) >= 0) {
 										$cat = "modify";
 										$div = $part;
 										if($part !== $full) {
 											if($nested) {
 												$cell->conflicted = $view->hashExists($raw, "theirs");
 											} else {
-												$cell->conflicted = _hx_index_of($cell->value, $full, null) >= 0;
+												$cell->conflicted = _hx_index_of($str, $full, null) >= 0;
 											}
 											if($cell->conflicted) {
 												$div = $full;
@@ -254,6 +280,10 @@ class coopy_DiffRender {
 												$tokens = (new _hx_array(array($view->hashGet($raw, "before"), $view->hashGet($raw, "after"))));
 											}
 										} else {
+											$cell->pretty_value = $view->toString($cell->pretty_value);
+											if($cell->pretty_value === null) {
+												$cell->pretty_value = "";
+											}
 											if($cell->pretty_value === $div) {
 												$tokens = (new _hx_array(array("", "")));
 											} else {

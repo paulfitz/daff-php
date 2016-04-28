@@ -113,6 +113,9 @@ class coopy_CombinedTableBody implements coopy_Table{
 	public function hclone() {
 		return new coopy_CombinedTable($this->all->hclone());
 	}
+	public function create() {
+		return new coopy_CombinedTable($this->all->create());
+	}
 	public function getMeta() {
 		return $this->parent->getMeta();
 	}

@@ -227,7 +227,7 @@ class coopy_HighlightPatch implements coopy_Row{
 			$_g = $this->payloadTop;
 			while($_g1 < $_g) {
 				$i = $_g1++;
-				$txt = $this->getString($i);
+				$txt = $this->getDatum($i);
 				$idx_patch = $i;
 				$idx_src = null;
 				if($this->patchInSourceCol->exists($idx_patch)) {
@@ -321,6 +321,13 @@ class coopy_HighlightPatch implements coopy_Row{
 	}
 	public function getString($c) {
 		return $this->view->toString($this->getDatum($c));
+	}
+	public function getStringNull($c) {
+		$d = $this->getDatum($c);
+		if($d === null) {
+			return null;
+		}
+		return $this->view->toString($d);
 	}
 	public function applyMeta() {
 		$_g1 = $this->payloadCol;
@@ -472,7 +479,7 @@ class coopy_HighlightPatch implements coopy_Row{
 				if($name === null || $name === "") {
 					continue;
 				}
-				$txt = $this->getString($i);
+				$txt = $this->csv->parseCell($this->getStringNull($i));
 				$updated = false;
 				if($this->rowInfo->updated) {
 					$this->getPreString($txt);
@@ -488,8 +495,16 @@ class coopy_HighlightPatch implements coopy_Row{
 					}
 				}
 				if($updated) {
-					$rc->cond->set($name, $this->cellInfo->lvalue);
-					$rc->val->set($name, $this->cellInfo->rvalue);
+					{
+						$value = $this->csv->parseCell($this->cellInfo->lvalue);
+						$rc->cond->set($name, $value);
+						unset($value);
+					}
+					{
+						$value1 = $this->csv->parseCell($this->cellInfo->rvalue);
+						$rc->val->set($name, $value1);
+						unset($value1);
+					}
 				} else {
 					if($code === "+++") {
 						if($cact !== "---") {

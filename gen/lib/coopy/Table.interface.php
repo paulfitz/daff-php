@@ -14,5 +14,6 @@ interface coopy_Table {
 	function get_height();
 	function getData();
 	function hclone();
+	function create();
 	function getMeta();
 }

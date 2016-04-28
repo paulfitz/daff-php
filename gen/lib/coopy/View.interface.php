@@ -9,4 +9,7 @@ interface coopy_View {
 	function isHash($h);
 	function hashExists($h, $str);
 	function hashGet($h, $str);
+	function isTable($t);
+	function getTable($t);
+	function wrapTable($t);
 }

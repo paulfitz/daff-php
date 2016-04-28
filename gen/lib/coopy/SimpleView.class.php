@@ -44,5 +44,14 @@ class coopy_SimpleView implements coopy_View{
 	public function isHash($h) {
 		return Std::is($h, _hx_qtype("haxe.ds.StringMap"));
 	}
+	public function isTable($t) {
+		return Std::is($t, _hx_qtype("coopy.Table"));
+	}
+	public function getTable($t) {
+		return $t;
+	}
+	public function wrapTable($t) {
+		return $t;
+	}
 	function __toString() { return $this->toString(); }
 }

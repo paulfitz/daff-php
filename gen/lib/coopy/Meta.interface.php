@@ -9,4 +9,7 @@ interface coopy_Meta {
 	function useForColumnChanges();
 	function useForRowChanges();
 	function getRowStream();
+	function isNested();
+	function isSql();
+	function getName();
 }

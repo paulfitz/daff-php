@@ -216,6 +216,9 @@ class coopy_SimpleTable implements coopy_Table{
 		}
 		return $result;
 	}
+	public function create() {
+		return new coopy_SimpleTable($this->get_width(), $this->get_height());
+	}
 	public function setMeta($meta) {
 		$this->meta = $meta;
 	}

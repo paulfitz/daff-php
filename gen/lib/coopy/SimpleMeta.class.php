@@ -1,8 +1,11 @@
 <?php
 
 class coopy_SimpleMeta implements coopy_Meta{
-	public function __construct($t, $has_properties = null) {
+	public function __construct($t, $has_properties = null, $may_be_nested = null) {
 		if(!php_Boot::$skip_constructor) {
+		if($may_be_nested === null) {
+			$may_be_nested = false;
+		}
 		if($has_properties === null) {
 			$has_properties = true;
 		}
@@ -10,6 +13,7 @@ class coopy_SimpleMeta implements coopy_Meta{
 		$this->rowChange();
 		$this->colChange();
 		$this->has_properties = $has_properties;
+		$this->may_be_nested = $may_be_nested;
 		$this->metadata = null;
 		$this->keys = null;
 		$this->row_active = false;
@@ -23,6 +27,7 @@ class coopy_SimpleMeta implements coopy_Meta{
 	public $keys;
 	public $row_active;
 	public $row_change_cache;
+	public $may_be_nested;
 	public function storeRowChanges($changes) {
 		$this->row_change_cache = $changes;
 		$this->row_active = true;
@@ -259,7 +264,7 @@ class coopy_SimpleMeta implements coopy_Meta{
 		return $mt;
 	}
 	public function cloneMeta($table = null) {
-		$result = new coopy_SimpleMeta($table, null);
+		$result = new coopy_SimpleMeta($table, null, null);
 		if($this->metadata !== null) {
 			$result->keys = new haxe_ds_StringMap();
 			if(null == $this->keys) throw new HException('null iterable');
@@ -310,6 +315,15 @@ class coopy_SimpleMeta implements coopy_Meta{
 	}
 	public function getRowStream() {
 		return new coopy_TableStream($this->t);
+	}
+	public function isNested() {
+		return $this->may_be_nested;
+	}
+	public function isSql() {
+		return false;
+	}
+	public function getName() {
+		return null;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

@@ -33,7 +33,7 @@ class coopy_CombinedTable implements coopy_Table{
 		$this->head = new coopy_CombinedTableHead($this, $this->dx, $this->dy);
 		$this->body = new coopy_CombinedTableBody($this, $this->dx, $this->dy);
 		$this->core = $this->body;
-		$this->meta = new coopy_SimpleMeta($this->head, null);
+		$this->meta = new coopy_SimpleMeta($this->head, null, null);
 	}}
 	public $t;
 	public $body;
@@ -89,6 +89,9 @@ class coopy_CombinedTable implements coopy_Table{
 	}
 	public function hclone() {
 		return $this->core->hclone();
+	}
+	public function create() {
+		return $this->t->create();
 	}
 	public function getMeta() {
 		return $this->meta;

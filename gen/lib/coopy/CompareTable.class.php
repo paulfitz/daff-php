@@ -29,6 +29,8 @@ class coopy_CompareTable {
 		}
 		$alignment = new coopy_Alignment();
 		$this->alignCore($alignment);
+		$alignment->comp = $this->comp;
+		$this->comp->alignment = $alignment;
 		return $alignment;
 	}
 	public function getComparisonState() {
@@ -48,7 +50,17 @@ class coopy_CompareTable {
 				$tab2 = $this->comp->b;
 				$tab3 = $this->comp->a;
 			}
-			$sc = new coopy_SqlCompare($tab1->getDatabase(), $tab1, $tab2, $tab3, $align);
+			$db = null;
+			if($tab1 !== null) {
+				$db = $tab1->getDatabase();
+			}
+			if($db === null && $tab2 !== null) {
+				$db = $tab2->getDatabase();
+			}
+			if($db === null && $tab3 !== null) {
+				$db = $tab3->getDatabase();
+			}
+			$sc = new coopy_SqlCompare($db, $tab1, $tab2, $tab3, $align);
 			$sc->apply();
 			if($this->comp->p !== null) {
 				$align->meta->reference = $align->reference->meta;
@@ -677,6 +689,28 @@ class coopy_CompareTable {
 		$p = $this->comp->p;
 		$a = $this->comp->a;
 		$b = $this->comp->b;
+		$this->comp->getMeta();
+		$nested = false;
+		if($this->comp->p_meta !== null) {
+			if($this->comp->p_meta->isNested()) {
+				$nested = true;
+			}
+		}
+		if($this->comp->a_meta !== null) {
+			if($this->comp->a_meta->isNested()) {
+				$nested = true;
+			}
+		}
+		if($this->comp->b_meta !== null) {
+			if($this->comp->b_meta->isNested()) {
+				$nested = true;
+			}
+		}
+		if($nested) {
+			$this->comp->is_equal = false;
+			$this->comp->is_equal_known = true;
+			return true;
+		}
 		$eq = $this->isEqual2($a, $b);
 		if($eq && $p !== null) {
 			$eq = $this->isEqual2($p, $a);
@@ -735,7 +769,33 @@ class coopy_CompareTable {
 		if($this->comp->compare_flags === null) {
 			return false;
 		}
-		return $this->comp->compare_flags->diff_strategy === "sql";
+		$this->comp->getMeta();
+		$sql = true;
+		if($this->comp->p_meta !== null) {
+			if(!$this->comp->p_meta->isSql()) {
+				$sql = false;
+			}
+		}
+		if($this->comp->a_meta !== null) {
+			if(!$this->comp->a_meta->isSql()) {
+				$sql = false;
+			}
+		}
+		if($this->comp->b_meta !== null) {
+			if(!$this->comp->b_meta->isSql()) {
+				$sql = false;
+			}
+		}
+		if($this->comp->p !== null && $this->comp->p_meta === null) {
+			$sql = false;
+		}
+		if($this->comp->a !== null && $this->comp->a_meta === null) {
+			$sql = false;
+		}
+		if($this->comp->b !== null && $this->comp->b_meta === null) {
+			$sql = false;
+		}
+		return $sql;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

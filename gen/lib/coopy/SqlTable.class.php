@@ -193,6 +193,9 @@ class coopy_SqlTable implements coopy_RowStream, coopy_Meta, coopy_Table{
 	public function hclone() {
 		return null;
 	}
+	public function create() {
+		return null;
+	}
 	public function getMeta() {
 		return $this;
 	}
@@ -203,7 +206,7 @@ class coopy_SqlTable implements coopy_RowStream, coopy_Meta, coopy_Table{
 	}
 	public function changeRow($rc) {
 		if($this->helper === null) {
-			haxe_Log::trace("No sql helper", _hx_anonymous(array("fileName" => "SqlTable.hx", "lineNumber" => 179, "className" => "coopy.SqlTable", "methodName" => "changeRow")));
+			haxe_Log::trace("No sql helper", _hx_anonymous(array("fileName" => "SqlTable.hx", "lineNumber" => 183, "className" => "coopy.SqlTable", "methodName" => "changeRow")));
 			return false;
 		}
 		if($rc->action === "+++") {
@@ -226,7 +229,7 @@ class coopy_SqlTable implements coopy_RowStream, coopy_Meta, coopy_Table{
 		$mt = new coopy_SimpleTable($w + 1, $pct);
 		$mt->setCell(0, 0, "@");
 		$mt->setCell(0, 1, "type");
-		$mt->setCell(0, 2, "pkey");
+		$mt->setCell(0, 2, "key");
 		{
 			$_g = 0;
 			while($_g < $w) {
@@ -234,7 +237,7 @@ class coopy_SqlTable implements coopy_RowStream, coopy_Meta, coopy_Table{
 				$i = $x + 1;
 				$mt->setCell($i, 0, $this->columnNames[$x]);
 				$mt->setCell($i, 1, _hx_array_get($this->columns, $x)->type_value);
-				$mt->setCell($i, 2, ((_hx_array_get($this->columns, $x)->primary) ? 1 : 0));
+				$mt->setCell($i, 2, ((_hx_array_get($this->columns, $x)->primary) ? "primary" : ""));
 				unset($x,$i);
 			}
 		}
@@ -259,6 +262,12 @@ class coopy_SqlTable implements coopy_RowStream, coopy_Meta, coopy_Table{
 		$this->getColumns();
 		$this->db->begin("SELECT * FROM " . _hx_string_or_null($this->getQuotedTableName()) . " ORDER BY ?", (new _hx_array(array($this->db->rowid()))), $this->columnNames);
 		return $this;
+	}
+	public function isNested() {
+		return false;
+	}
+	public function isSql() {
+		return true;
 	}
 	public function fetchRow() {
 		if($this->db->read()) {
@@ -285,6 +294,9 @@ class coopy_SqlTable implements coopy_RowStream, coopy_Meta, coopy_Table{
 	public function fetchColumns() {
 		$this->getColumns();
 		return $this->columnNames;
+	}
+	public function getName() {
+		return $this->name->toString();
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

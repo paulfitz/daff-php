@@ -1,9 +1,10 @@
 <?php
 
 class coopy_Coopy {
-	public function __construct() {
+	public function __construct($io = null) {
 		if(!php_Boot::$skip_constructor) {
 		$this->init();
+		$this->io = $io;
 	}}
 	public $format_preference;
 	public $delim_preference;
@@ -19,6 +20,7 @@ class coopy_Coopy {
 	public $css_output;
 	public $fragment;
 	public $flags;
+	public $cache_txt;
 	public $mv;
 	public function init() {
 		$this->extern_preference = false;
@@ -29,53 +31,57 @@ class coopy_Coopy {
 		$this->nested_output = false;
 		$this->order_set = false;
 		$this->order_preference = false;
+		$this->strategy = null;
 		$this->pretty = true;
 		$this->css_output = null;
 		$this->fragment = false;
 		$this->flags = null;
+		$this->cache_txt = null;
 	}
 	public function checkFormat($name) {
 		if($this->extern_preference) {
 			return $this->format_preference;
 		}
 		$ext = "";
-		$pt = _hx_last_index_of($name, ".", null);
-		if($pt >= 0) {
-			$ext = strtolower(_hx_substr($name, $pt + 1, null));
-			switch($ext) {
-			case "json":{
-				$this->format_preference = "json";
-			}break;
-			case "ndjson":{
-				$this->format_preference = "ndjson";
-			}break;
-			case "csv":{
-				$this->format_preference = "csv";
-				$this->delim_preference = ",";
-			}break;
-			case "tsv":{
-				$this->format_preference = "csv";
-				$this->delim_preference = "\x09";
-			}break;
-			case "ssv":{
-				$this->format_preference = "csv";
-				$this->delim_preference = ";";
-			}break;
-			case "sqlite3":{
-				$this->format_preference = "sqlite";
-			}break;
-			case "sqlite":{
-				$this->format_preference = "sqlite";
-			}break;
-			case "html":case "htm":{
-				$this->format_preference = "html";
-			}break;
-			case "www":{
-				$this->format_preference = "www";
-			}break;
-			default:{
-				$ext = "";
-			}break;
+		if($name !== null) {
+			$pt = _hx_last_index_of($name, ".", null);
+			if($pt >= 0) {
+				$ext = strtolower(_hx_substr($name, $pt + 1, null));
+				switch($ext) {
+				case "json":{
+					$this->format_preference = "json";
+				}break;
+				case "ndjson":{
+					$this->format_preference = "ndjson";
+				}break;
+				case "csv":{
+					$this->format_preference = "csv";
+					$this->delim_preference = ",";
+				}break;
+				case "tsv":{
+					$this->format_preference = "csv";
+					$this->delim_preference = "\x09";
+				}break;
+				case "ssv":{
+					$this->format_preference = "csv";
+					$this->delim_preference = ";";
+				}break;
+				case "sqlite3":{
+					$this->format_preference = "sqlite";
+				}break;
+				case "sqlite":{
+					$this->format_preference = "sqlite";
+				}break;
+				case "html":case "htm":{
+					$this->format_preference = "html";
+				}break;
+				case "www":{
+					$this->format_preference = "www";
+				}break;
+				default:{
+					$ext = "";
+				}break;
+				}
 			}
 		}
 		$this->nested_output = $this->format_preference === "json" || $this->format_preference === "ndjson";
@@ -87,10 +93,12 @@ class coopy_Coopy {
 		$this->checkFormat("." . _hx_string_or_null($name));
 		$this->extern_preference = true;
 	}
-	public function renderTable($name, $t) {
+	public function getRenderer() {
 		$renderer = new coopy_DiffRender();
 		$renderer->usePrettyArrows($this->pretty);
-		$renderer->render($t);
+		return $renderer;
+	}
+	public function applyRenderer($name, $renderer) {
 		if(!$this->fragment) {
 			$renderer->completeHtml();
 		}
@@ -104,7 +112,21 @@ class coopy_Coopy {
 		}
 		return true;
 	}
-	public function saveTable($name, $t) {
+	public function renderTable($name, $t) {
+		$renderer = $this->getRenderer();
+		$renderer->render($t);
+		return $this->applyRenderer($name, $renderer);
+	}
+	public function renderTables($name, $t) {
+		$renderer = $this->getRenderer();
+		$renderer->renderTables($t);
+		return $this->applyRenderer($name, $renderer);
+	}
+	public function saveTable($name, $t, $render = null) {
+		$txt = $this->encodeTable($name, $t, $render);
+		return $this->saveText($name, $txt);
+	}
+	public function encodeTable($name, $t, $render = null) {
 		if($this->output_format !== "copy") {
 			$this->setFormat($this->output_format);
 		}
@@ -113,35 +135,192 @@ class coopy_Coopy {
 		if($this->format_preference === "sqlite" && !$this->extern_preference) {
 			$this->format_preference = "csv";
 		}
-		if($this->format_preference === "csv") {
-			$csv = new coopy_Csv($this->delim_preference);
-			$txt = $csv->renderTable($t);
-		} else {
-			if($this->format_preference === "ndjson") {
-				$txt = _hx_deref(new coopy_Ndjson($t))->render();
+		if($render === null) {
+			if($this->format_preference === "csv") {
+				$csv = new coopy_Csv($this->delim_preference);
+				$txt = $csv->renderTable($t);
 			} else {
-				if($this->format_preference === "html" || $this->format_preference === "www") {
-					return $this->renderTable($name, $t);
+				if($this->format_preference === "ndjson") {
+					$txt = _hx_deref(new coopy_Ndjson($t))->render();
 				} else {
-					if($this->format_preference === "sqlite") {
-						$this->io->writeStderr("! Cannot yet output to sqlite, aborting\x0A");
-						return false;
+					if($this->format_preference === "html" || $this->format_preference === "www") {
+						$this->renderTable($name, $t);
 					} else {
-						$value = coopy_Coopy::jsonify($t);
-						$txt = haxe_format_JsonPrinter::hprint($value, null, "  ");
+						if($this->format_preference === "sqlite") {
+							$this->io->writeStderr("! Cannot yet output to sqlite, aborting\x0A");
+							return "";
+						} else {
+							$value = coopy_Coopy::jsonify($t);
+							$txt = haxe_format_JsonPrinter::hprint($value, null, "  ");
+						}
 					}
 				}
+			}
+		} else {
+			$txt = $render->render($t);
+		}
+		return $txt;
+	}
+	public function saveTables($name, $os, $use_color) {
+		if($this->output_format !== "copy") {
+			$this->setFormat($this->output_format);
+		}
+		$txt = "";
+		$this->checkFormat($name);
+		$render = null;
+		if($use_color) {
+			$render = new coopy_TerminalDiffRender($this->flags);
+		}
+		$order = $os->getOrder();
+		if($order->length === 1) {
+			return $this->saveTable($name, $os->one(), $render);
+		}
+		if($this->format_preference === "html" || $this->format_preference === "www") {
+			return $this->renderTables($name, $os);
+		}
+		$need_blank = false;
+		if($order->length === 0 || $os->hasInsDel()) {
+			$txt .= _hx_string_or_null($this->encodeTable($name, $os->one(), $render));
+			$need_blank = true;
+		}
+		if($order->length > 1) {
+			$_g1 = 1;
+			$_g = $order->length;
+			while($_g1 < $_g) {
+				$i = $_g1++;
+				$t = $os->get($order[$i]);
+				if($t !== null) {
+					if($need_blank) {
+						$txt .= "\x0A";
+					}
+					$need_blank = true;
+					$txt .= _hx_string_or_null($order[$i]) . "\x0A";
+					$line = "";
+					{
+						$_g3 = 0;
+						$_g2 = strlen($order[$i]);
+						while($_g3 < $_g2) {
+							$i1 = $_g3++;
+							$line .= "=";
+							unset($i1);
+						}
+						unset($_g3,$_g2);
+					}
+					$txt .= _hx_string_or_null($line) . "\x0A";
+					$txt .= _hx_string_or_null($this->encodeTable($name, $os->get($order[$i]), $render));
+					unset($line);
+				}
+				unset($t,$i);
 			}
 		}
 		return $this->saveText($name, $txt);
 	}
 	public function saveText($name, $txt) {
-		if($name !== "-") {
-			$this->io->saveContent($name, $txt);
+		if($name === null) {
+			$this->cache_txt .= _hx_string_or_null($txt);
 		} else {
-			$this->io->writeStdout($txt);
+			if($name !== "-") {
+				$this->io->saveContent($name, $txt);
+			} else {
+				$this->io->writeStdout($txt);
+			}
 		}
 		return true;
+	}
+	public function jsonToTables($json) {
+		$tables = Reflect::field($json, "tables");
+		if($tables === null) {
+			return $this->jsonToTable($json);
+		}
+		return new coopy_JsonTables($json, $this->flags);
+	}
+	public function jsonToTable($json) {
+		$output = null;
+		{
+			$_g = 0;
+			$_g1 = Reflect::fields($json);
+			while($_g < $_g1->length) {
+				$name = $_g1[$_g];
+				++$_g;
+				$t = Reflect::field($json, $name);
+				$columns = Reflect::field($t, "columns");
+				if($columns === null) {
+					continue;
+				}
+				$rows = Reflect::field($t, "rows");
+				if($rows === null) {
+					continue;
+				}
+				$output = new coopy_SimpleTable($columns->length, $rows->length);
+				$has_hash = false;
+				$has_hash_known = false;
+				{
+					$_g3 = 0;
+					$_g2 = $rows->length;
+					while($_g3 < $_g2) {
+						$i = $_g3++;
+						$row = $rows[$i];
+						if(!$has_hash_known) {
+							if(Reflect::fields($row)->length === $columns->length) {
+								$has_hash = true;
+							}
+							$has_hash_known = true;
+						}
+						if(!$has_hash) {
+							$lst = $row;
+							{
+								$_g5 = 0;
+								$_g4 = $columns->length;
+								while($_g5 < $_g4) {
+									$j = $_g5++;
+									$val = $lst[$j];
+									$output->setCell($j, $i, coopy_Coopy::cellFor($val));
+									unset($val,$j);
+								}
+								unset($_g5,$_g4);
+							}
+							unset($lst);
+						} else {
+							$_g51 = 0;
+							$_g41 = $columns->length;
+							while($_g51 < $_g41) {
+								$j1 = $_g51++;
+								$val1 = Reflect::field($row, $columns[$j1]);
+								$output->setCell($j1, $i, coopy_Coopy::cellFor($val1));
+								unset($val1,$j1);
+							}
+							unset($_g51,$_g41);
+						}
+						unset($row,$i);
+					}
+					unset($_g3,$_g2);
+				}
+				unset($t,$rows,$name,$has_hash_known,$has_hash,$columns);
+			}
+		}
+		if($output !== null) {
+			$output->trimBlank();
+		}
+		return $output;
+	}
+	public function runDiff($parent, $a, $b, $flags, $output) {
+		$ct = coopy_Coopy::compareTables3($parent, $a, $b, $flags);
+		$align = $ct->align();
+		$td = new coopy_TableDiff($align, $flags);
+		$o = new coopy_SimpleTable(0, 0);
+		$os = new coopy_Tables($o);
+		$td->hiliteWithNesting($os);
+		$use_color = $flags->terminal_format === "ansi";
+		if($flags->terminal_format === null) {
+			if(($output === null || $output === "-") && ($this->output_format === "copy" || $this->output_format === "csv")) {
+				if($this->io !== null) {
+					if($this->io->isTtyKnown()) {
+						$use_color = $this->io->isTty();
+					}
+				}
+			}
+		}
+		$this->saveTables($output, $os, $use_color);
 	}
 	public function loadTable($name) {
 		$ext = $this->checkFormat($name);
@@ -151,27 +330,7 @@ class coopy_Coopy {
 				$this->io->writeStderr("! Cannot open database, aborting\x0A");
 				return null;
 			}
-			$helper = new coopy_SqliteHelper();
-			$name1 = "";
-			if($this->flags === null || $this->flags->tables === null || $this->flags->tables->length === 0) {
-				$names = $helper->getTableNames($sql);
-				if($names === null) {
-					$this->io->writeStderr("! Cannot find database tables, aborting\x0A");
-					return null;
-				}
-				if($names->length === 0) {
-					$this->io->writeStderr("! No tables in database, aborting\x0A");
-					return null;
-				}
-				$name1 = $names[0];
-			} else {
-				$name1 = $this->flags->tables[0];
-				if($this->flags->tables->length > 1) {
-					$this->io->writeStderr("! Cannot compare more than one table yet\x0A");
-				}
-			}
-			$tab = new coopy_SqlTable($sql, new coopy_SqlTableName($name1, null), $helper);
-			$this->strategy = "sql";
+			$tab = new coopy_SqlTables($sql, $this->flags);
 			return $tab;
 		}
 		$txt = $this->io->getContent($name);
@@ -185,7 +344,7 @@ class coopy_Coopy {
 			try {
 				$json = _hx_deref(new haxe_format_JsonParser($txt))->parseRec();
 				$this->format_preference = "json";
-				$t1 = coopy_Coopy::jsonToTable($json);
+				$t1 = $this->jsonToTables($json);
 				if($t1 === null) {
 					throw new HException("JSON failed");
 				}
@@ -408,18 +567,20 @@ class coopy_Coopy {
 		$io->writeStdout("- Done!\x0A");
 		return 0;
 	}
-	public function coopyhx($io) {
-		$this->init();
-		$args = $io->args();
-		if($args[0] === "--keep") {
-			return coopy_Coopy::keepAround();
+	public function run($args, $io = null) {
+		if($io === null) {
+			$io = new coopy_TableIO();
 		}
+		if($io === null) {
+			haxe_Log::trace("No system interface available", _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 693, "className" => "coopy.Coopy", "methodName" => "run")));
+			return 1;
+		}
+		$this->init();
+		$this->io = $io;
 		$more = true;
 		$output = null;
 		$inplace = false;
 		$git = false;
-		$color = false;
-		$no_color = false;
 		$this->flags = new coopy_CompareFlags();
 		$this->flags->always_show_header = true;
 		while($more) {
@@ -525,13 +686,13 @@ class coopy_Coopy {
 																	} else {
 																		if($tag === "--color") {
 																			$more = true;
-																			$color = true;
+																			$this->flags->terminal_format = "ansi";
 																			$args->splice($i, 1);
 																			break;
 																		} else {
 																			if($tag === "--no-color") {
 																				$more = true;
-																				$no_color = true;
+																				$this->flags->terminal_format = "plain";
 																				$args->splice($i, 1);
 																				break;
 																			} else {
@@ -587,6 +748,20 @@ class coopy_Coopy {
 																												$this->flags->ignore_whitespace = true;
 																												$args->splice($i, 1);
 																												break;
+																											} else {
+																												if($tag === "-i" || $tag === "--ignore-case") {
+																													$more = true;
+																													$this->flags->ignore_case = true;
+																													$args->splice($i, 1);
+																													break;
+																												} else {
+																													if($tag === "--padding") {
+																														$more = true;
+																														$this->flags->padding_strategy = $args[$i + 1];
+																														$args->splice($i, 2);
+																														break;
+																													}
+																												}
 																											}
 																										}
 																									}
@@ -677,9 +852,11 @@ class coopy_Coopy {
 			$io->writeStderr("     --no-color:    make sure terminal colors are not used\x0A");
 			$io->writeStderr("     --ordered:     assume row order is meaningful (default for CSV)\x0A");
 			$io->writeStderr("     --output-format [csv|tsv|ssv|json|copy|html]: set format for output\x0A");
+			$io->writeStderr("     --padding [dense|sparse|smart]: set padding method for aligning columns\x0A");
 			$io->writeStderr("     --table NAME:  compare the named table, used with SQL sources\x0A");
 			$io->writeStderr("     --unordered:   assume row order is meaningless (default for json formats)\x0A");
 			$io->writeStderr("     -w / --ignore-whitespace: ignore changes in leading/trailing whitespace\x0A");
+			$io->writeStderr("     -i / --ignore-case: ignore differences in case\x0A");
 			$io->writeStderr("\x0A");
 			$io->writeStderr("  daff render [--output OUTPUT.html] [--css CSS.css] [--fragment] [--plain] diff.csv\x0A");
 			$io->writeStderr("     --css CSS.css: generate a suitable css file to go with the html\x0A");
@@ -722,19 +899,17 @@ class coopy_Coopy {
 			$args->push($old_file);
 			$args->push($new_file);
 		}
-		$tool = $this;
-		$tool->io = $io;
 		$parent = null;
 		if($args->length - $offset >= 3) {
-			$parent = $tool->loadTable($args[$offset]);
+			$parent = $this->loadTable($args[$offset]);
 			$offset++;
 		}
 		$aname = $args[$offset];
-		$a = $tool->loadTable($aname);
+		$a = $this->loadTable($aname);
 		$b = null;
 		if($args->length - $offset >= 2) {
 			if($cmd1 !== "copy") {
-				$b = $tool->loadTable($args[1 + $offset]);
+				$b = $this->loadTable($args[1 + $offset]);
 			} else {
 				$output = $args[1 + $offset];
 			}
@@ -759,30 +934,12 @@ class coopy_Coopy {
 				}
 			}
 			$this->flags->allow_nested_cells = $this->nested_output;
-			$ct1 = coopy_Coopy::compareTables3($parent, $a, $b, $this->flags);
-			$align = $ct1->align();
-			$td = new coopy_TableDiff($align, $this->flags);
-			$o = new coopy_SimpleTable(0, 0);
-			$td->hilite($o);
-			$use_color = $color;
-			if(!($color || $no_color)) {
-				if($output === "-" && $this->output_format === "copy") {
-					if($io->isTtyKnown()) {
-						$use_color = $io->isTty();
-					}
-				}
-			}
-			if($use_color) {
-				$render = new coopy_TerminalDiffRender();
-				$tool->saveText($output, $render->render($o));
-			} else {
-				$tool->saveTable($output, $o);
-			}
+			$this->runDiff($parent, $a, $b, $this->flags, $output);
 		} else {
 			if($cmd1 === "patch") {
 				$patcher = new coopy_HighlightPatch($a, $b, null);
 				$patcher->apply();
-				$tool->saveTable($output, $a);
+				$this->saveTable($output, $a, null);
 			} else {
 				if($cmd1 === "merge") {
 					$merger = new coopy_Merger($parent, $a, $b, $this->flags);
@@ -791,16 +948,16 @@ class coopy_Coopy {
 					if($conflicts > 0) {
 						$io->writeStderr(_hx_string_rec($conflicts, "") . " conflict" . _hx_string_or_null(((($conflicts > 1) ? "s" : ""))) . "\x0A");
 					}
-					$tool->saveTable($output, $a);
+					$this->saveTable($output, $a, null);
 				} else {
 					if($cmd1 === "trim") {
-						$tool->saveTable($output, $a);
+						$this->saveTable($output, $a, null);
 					} else {
 						if($cmd1 === "render") {
 							$this->renderTable($output, $a);
 						} else {
 							if($cmd1 === "copy") {
-								$tool->saveTable($output, $a);
+								$this->saveTable($output, $a, null);
 							}
 						}
 					}
@@ -813,6 +970,13 @@ class coopy_Coopy {
 			return 1;
 		}
 	}
+	public function coopyhx($io) {
+		$args = $io->args();
+		if($args[0] === "--keep") {
+			return coopy_Coopy::keepAround();
+		}
+		return $this->run($args, $io);
+	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);
@@ -823,21 +987,67 @@ class coopy_Coopy {
 		else
 			throw new HException('Unable to call <'.$m.'>');
 	}
-	static $VERSION = "1.3.2";
+	static $VERSION = "1.3.16";
 	static function diffAsHtml($local, $remote, $flags = null) {
-		$o = coopy_Coopy::diff($local, $remote, $flags);
+		$comp = new coopy_TableComparisonState();
+		$td = coopy_Coopy::align($local, $remote, $flags, $comp);
+		$o = coopy_Coopy::getBlankTable($td, $comp);
+		if($comp->a !== null) {
+			$o = $comp->a->create();
+		}
+		if($o === null && $comp->b !== null) {
+			$o = $comp->b->create();
+		}
+		if($o === null) {
+			$o = new coopy_SimpleTable(0, 0);
+		}
+		$os = new coopy_Tables($o);
+		$td->hiliteWithNesting($os);
 		$render = new coopy_DiffRender();
-		return $render->render($o)->html();
+		return $render->renderTables($os)->html();
 	}
 	static function diffAsAnsi($local, $remote, $flags = null) {
-		$o = coopy_Coopy::diff($local, $remote, $flags);
-		$render = new coopy_TerminalDiffRender();
-		return $render->render($o);
+		$tool = new coopy_Coopy(new coopy_TableIO());
+		$tool->cache_txt = "";
+		if($flags === null) {
+			$flags = new coopy_CompareFlags();
+		}
+		$tool->output_format = "csv";
+		$tool->runDiff($flags->parent, $local, $remote, $flags, null);
+		return $tool->cache_txt;
 	}
 	static function diff($local, $remote, $flags = null) {
 		$comp = new coopy_TableComparisonState();
-		$comp->a = $local;
-		$comp->b = $remote;
+		$td = coopy_Coopy::align($local, $remote, $flags, $comp);
+		$o = coopy_Coopy::getBlankTable($td, $comp);
+		if($comp->a !== null) {
+			$o = $comp->a->create();
+		}
+		if($o === null && $comp->b !== null) {
+			$o = $comp->b->create();
+		}
+		if($o === null) {
+			$o = new coopy_SimpleTable(0, 0);
+		}
+		$td->hilite($o);
+		return $o;
+	}
+	static function getBlankTable($td, $comp) {
+		$o = null;
+		if($comp->a !== null) {
+			$o = $comp->a->create();
+		}
+		if($o === null && $comp->b !== null) {
+			$o = $comp->b->create();
+		}
+		if($o === null) {
+			$o = new coopy_SimpleTable(0, 0);
+		}
+		return $o;
+	}
+	static function align($local, $remote, $flags, $comp) {
+		$comp->a = coopy_Coopy::tablify($local);
+		$comp->b = coopy_Coopy::tablify($remote);
 		if($flags === null) {
 			$flags = new coopy_CompareFlags();
 		}
@@ -845,27 +1055,25 @@ class coopy_Coopy {
 		$ct = new coopy_CompareTable($comp);
 		$align = $ct->align();
 		$td = new coopy_TableDiff($align, $flags);
-		$o = new coopy_SimpleTable(0, 0);
-		$td->hilite($o);
-		return $o;
+		return $td;
 	}
 	static function patch($local, $patch, $flags = null) {
-		$patcher = new coopy_HighlightPatch($local, $patch, null);
+		$patcher = new coopy_HighlightPatch(coopy_Coopy::tablify($local), coopy_Coopy::tablify($patch), null);
 		return $patcher->apply();
 	}
 	static function compareTables($local, $remote, $flags = null) {
 		$comp = new coopy_TableComparisonState();
-		$comp->a = $local;
-		$comp->b = $remote;
+		$comp->a = coopy_Coopy::tablify($local);
+		$comp->b = coopy_Coopy::tablify($remote);
 		$comp->compare_flags = $flags;
 		$ct = new coopy_CompareTable($comp);
 		return $ct;
 	}
 	static function compareTables3($parent, $local, $remote, $flags = null) {
 		$comp = new coopy_TableComparisonState();
-		$comp->p = $parent;
-		$comp->a = $local;
-		$comp->b = $remote;
+		$comp->p = coopy_Coopy::tablify($parent);
+		$comp->a = coopy_Coopy::tablify($local);
+		$comp->b = coopy_Coopy::tablify($remote);
 		$comp->compare_flags = $flags;
 		$ct = new coopy_CompareTable($comp);
 		return $ct;
@@ -881,85 +1089,17 @@ class coopy_Coopy {
 		$csv = new coopy_Csv(null);
 		$tm = new coopy_TableModifier(null);
 		$sc = new coopy_SqlCompare(null, null, null, null, null);
-		$sm = new coopy_SimpleMeta(null, null);
+		$sq = new coopy_SqliteHelper();
+		$sm = new coopy_SimpleMeta(null, null, null);
 		$ct = new coopy_CombinedTable(null);
 		return 0;
 	}
 	static function cellFor($x) {
 		return $x;
 	}
-	static function jsonToTable($json) {
-		$output = null;
-		{
-			$_g = 0;
-			$_g1 = Reflect::fields($json);
-			while($_g < $_g1->length) {
-				$name = $_g1[$_g];
-				++$_g;
-				$t = Reflect::field($json, $name);
-				$columns = Reflect::field($t, "columns");
-				if($columns === null) {
-					continue;
-				}
-				$rows = Reflect::field($t, "rows");
-				if($rows === null) {
-					continue;
-				}
-				$output = new coopy_SimpleTable($columns->length, $rows->length);
-				$has_hash = false;
-				$has_hash_known = false;
-				{
-					$_g3 = 0;
-					$_g2 = $rows->length;
-					while($_g3 < $_g2) {
-						$i = $_g3++;
-						$row = $rows[$i];
-						if(!$has_hash_known) {
-							if(Reflect::fields($row)->length === $columns->length) {
-								$has_hash = true;
-							}
-							$has_hash_known = true;
-						}
-						if(!$has_hash) {
-							$lst = $row;
-							{
-								$_g5 = 0;
-								$_g4 = $columns->length;
-								while($_g5 < $_g4) {
-									$j = $_g5++;
-									$val = $lst[$j];
-									$output->setCell($j, $i, coopy_Coopy::cellFor($val));
-									unset($val,$j);
-								}
-								unset($_g5,$_g4);
-							}
-							unset($lst);
-						} else {
-							$_g51 = 0;
-							$_g41 = $columns->length;
-							while($_g51 < $_g41) {
-								$j1 = $_g51++;
-								$val1 = Reflect::field($row, $columns[$j1]);
-								$output->setCell($j1, $i, coopy_Coopy::cellFor($val1));
-								unset($val1,$j1);
-							}
-							unset($_g51,$_g41);
-						}
-						unset($row,$i);
-					}
-					unset($_g3,$_g2);
-				}
-				unset($t,$rows,$name,$has_hash_known,$has_hash,$columns);
-			}
-		}
-		if($output !== null) {
-			$output->trimBlank();
-		}
-		return $output;
-	}
 	static function main() {
 		$io = new coopy_TableIO();
-		$coopy1 = new coopy_Coopy();
+		$coopy1 = new coopy_Coopy(null);
 		return $coopy1->coopyhx($io);
 	}
 	static function show($t) {
@@ -984,7 +1124,7 @@ class coopy_Coopy {
 				unset($y);
 			}
 		}
-		haxe_Log::trace($txt, _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 938, "className" => "coopy.Coopy", "methodName" => "show")));
+		haxe_Log::trace($txt, _hx_anonymous(array("fileName" => "Coopy.hx", "lineNumber" => 1069, "className" => "coopy.Coopy", "methodName" => "show")));
 	}
 	static function jsonify($t) {
 		$workbook = new haxe_ds_StringMap();
@@ -1013,6 +1153,16 @@ class coopy_Coopy {
 		}
 		$workbook->set("sheet", $sheet);
 		return $workbook;
+	}
+	static function tablify($data) {
+		if($data === null) {
+			return $data;
+		}
+		$get_cell_view = Reflect::field($data, "getCellView");
+		if($get_cell_view !== null) {
+			return $data;
+		}
+		return new coopy_PhpTableView($data);
 	}
 	function __toString() { return 'coopy.Coopy'; }
 }

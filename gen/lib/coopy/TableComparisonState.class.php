@@ -15,6 +15,12 @@ class coopy_TableComparisonState {
 	public $has_same_columns;
 	public $has_same_columns_known;
 	public $compare_flags;
+	public $p_meta;
+	public $a_meta;
+	public $b_meta;
+	public $alignment;
+	public $children;
+	public $child_order;
 	public function reset() {
 		$this->completed = false;
 		$this->run_to_completion = true;
@@ -23,6 +29,20 @@ class coopy_TableComparisonState {
 		$this->has_same_columns = false;
 		$this->has_same_columns_known = false;
 		$this->compare_flags = null;
+		$this->alignment = null;
+		$this->children = null;
+		$this->child_order = null;
+	}
+	public function getMeta() {
+		if($this->p !== null && $this->p_meta === null) {
+			$this->p_meta = $this->p->getMeta();
+		}
+		if($this->a !== null && $this->a_meta === null) {
+			$this->a_meta = $this->a->getMeta();
+		}
+		if($this->b !== null && $this->b_meta === null) {
+			$this->b_meta = $this->b->getMeta();
+		}
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

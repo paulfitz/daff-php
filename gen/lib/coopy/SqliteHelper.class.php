@@ -66,7 +66,7 @@ class coopy_SqliteHelper implements coopy_SqlHelper{
 				$q .= " and ";
 			}
 			$q .= _hx_string_or_null($db->getQuotedColumnName($k1));
-			$q .= " = ?";
+			$q .= " IS ?";
 			$lst->push($conds->get($k1));
 		}
 		if(!$db->begin($q, $lst, (new _hx_array(array())))) {
@@ -134,8 +134,38 @@ class coopy_SqliteHelper implements coopy_SqlHelper{
 		return true;
 	}
 	public function attach($db, $tag, $resource_name) {
+		$tag_present = false;
+		$tag_correct = false;
+		$result = new _hx_array(array());
+		$q = "PRAGMA database_list";
+		if(!$db->begin($q, null, (new _hx_array(array("seq", "name", "file"))))) {
+			return false;
+		}
+		while($db->read()) {
+			$name = $db->get(1);
+			if($name === $tag) {
+				$tag_present = true;
+				$file = $db->get(2);
+				if($file === $resource_name) {
+					$tag_correct = true;
+				}
+				unset($file);
+			}
+			unset($name);
+		}
+		$db->end();
+		if($tag_present) {
+			if($tag_correct) {
+				return true;
+			}
+			if(!$db->begin("DETACH `" . _hx_string_or_null($tag) . "`", null, (new _hx_array(array())))) {
+				haxe_Log::trace("Failed to detach " . _hx_string_or_null($tag), _hx_anonymous(array("fileName" => "SqliteHelper.hx", "lineNumber" => 147, "className" => "coopy.SqliteHelper", "methodName" => "attach")));
+				return false;
+			}
+			$db->end();
+		}
 		if(!$db->begin("ATTACH ? AS `" . _hx_string_or_null($tag) . "`", (new _hx_array(array($resource_name))), (new _hx_array(array())))) {
-			haxe_Log::trace("Failed to attach " . _hx_string_or_null($resource_name) . " as " . _hx_string_or_null($tag), _hx_anonymous(array("fileName" => "SqliteHelper.hx", "lineNumber" => 128, "className" => "coopy.SqliteHelper", "methodName" => "attach")));
+			haxe_Log::trace("Failed to attach " . _hx_string_or_null($resource_name) . " as " . _hx_string_or_null($tag), _hx_anonymous(array("fileName" => "SqliteHelper.hx", "lineNumber" => 154, "className" => "coopy.SqliteHelper", "methodName" => "attach")));
 			return false;
 		}
 		$db->end();
@@ -148,7 +178,7 @@ class coopy_SqliteHelper implements coopy_SqlHelper{
 		$tname = $db->getQuotedTableName($name);
 		$query = "select sql from sqlite_master where name = '" . _hx_string_or_null($tname) . "'";
 		if(!$db->begin($query, null, (new _hx_array(array("sql"))))) {
-			haxe_Log::trace("Cannot find schema for table " . _hx_string_or_null($tname), _hx_anonymous(array("fileName" => "SqliteHelper.hx", "lineNumber" => 143, "className" => "coopy.SqliteHelper", "methodName" => "fetchSchema")));
+			haxe_Log::trace("Cannot find schema for table " . _hx_string_or_null($tname), _hx_anonymous(array("fileName" => "SqliteHelper.hx", "lineNumber" => 169, "className" => "coopy.SqliteHelper", "methodName" => "fetchSchema")));
 			return null;
 		}
 		$sql = "";
@@ -237,7 +267,7 @@ class coopy_SqliteHelper implements coopy_SqlHelper{
 	}
 	public function exec($db, $query) {
 		if(!$db->begin($query, null, null)) {
-			haxe_Log::trace("database problem", _hx_anonymous(array("fileName" => "SqliteHelper.hx", "lineNumber" => 224, "className" => "coopy.SqliteHelper", "methodName" => "exec")));
+			haxe_Log::trace("database problem", _hx_anonymous(array("fileName" => "SqliteHelper.hx", "lineNumber" => 250, "className" => "coopy.SqliteHelper", "methodName" => "exec")));
 			return false;
 		}
 		$db->end();
@@ -283,8 +313,8 @@ class coopy_SqliteHelper implements coopy_SqlHelper{
 							if($p->name === "type") {
 								$next_type = $p->val;
 							}
-							if($p->name === "pkey") {
-								$next_primary = "" . Std::string($p->val) === "1";
+							if($p->name === "key") {
+								$next_primary = "" . Std::string($p->val) === "primary";
 							}
 							unset($p);
 						}

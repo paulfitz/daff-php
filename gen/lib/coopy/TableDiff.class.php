@@ -46,6 +46,8 @@ class coopy_TableDiff {
 	public $diff_found;
 	public $schema_diff_found;
 	public $preserve_columns;
+	public $nested;
+	public $nesting_present;
 	public function setCellBuilder($builder) {
 		$this->builder = $builder;
 	}
@@ -344,8 +346,21 @@ class coopy_TableDiff {
 		$this->allow_insert = $this->flags->allowInsert();
 		$this->allow_delete = $this->flags->allowDelete();
 		$this->allow_update = $this->flags->allowUpdate();
-		$this->v = $this->a->getCellView();
+		$common = $this->a;
+		if($common === null) {
+			$common = $this->b;
+		}
+		if($common === null) {
+			$common = $this->p;
+		}
+		$this->v = $common->getCellView();
 		$this->builder->setView($this->v);
+		$this->nested = false;
+		$meta = $common->getMeta();
+		if($meta !== null) {
+			$this->nested = $meta->isNested();
+		}
+		$this->nesting_present = false;
 	}
 	public function scanActivity() {
 		$this->active_row = new _hx_array(array());
@@ -484,7 +499,7 @@ class coopy_TableDiff {
 					if($this->p->get_height() >= $this->rp_header && $this->b->get_height() >= $this->rb_header) {
 						$pp = $this->p->getCell($cunit->lp(), $this->rp_header);
 						$bb = $this->b->getCell($cunit->r, $this->rb_header);
-						if(!$this->v->equals($pp, $bb)) {
+						if(!$this->isEqual($this->v, $pp, $bb)) {
 							$this->have_schema = true;
 							$act = "(";
 							$act .= _hx_string_or_null($this->v->toString($pp));
@@ -715,6 +730,9 @@ class coopy_TableDiff {
 		return true;
 	}
 	public function getMetaTable($t) {
+		if($t === null) {
+			return null;
+		}
 		$meta = $t->getMeta();
 		if($meta === null) {
 			return null;
@@ -816,11 +834,108 @@ class coopy_TableDiff {
 			}
 		}
 	}
-	public function isEqual($v, $aa, $bb) {
+	public function normalizeString($v, $str) {
+		if($str === null) {
+			return $str;
+		}
+		if(!($this->flags->ignore_whitespace || $this->flags->ignore_case)) {
+			return $str;
+		}
+		$txt = $v->toString($str);
 		if($this->flags->ignore_whitespace) {
-			return coopy_TableDiff_0($this, $aa, $bb, $v) === coopy_TableDiff_1($this, $aa, $bb, $v);
+			$txt = trim($txt);
+		}
+		if($this->flags->ignore_case) {
+			$txt = strtolower($txt);
+		}
+		return $txt;
+	}
+	public function isEqual($v, $aa, $bb) {
+		if($this->flags->ignore_whitespace || $this->flags->ignore_case) {
+			return $this->normalizeString($v, $aa) === $this->normalizeString($v, $bb);
 		}
 		return $v->equals($aa, $bb);
+	}
+	public function checkNesting($v, $have_ll, $ll, $have_rr, $rr, $have_pp, $pp, $x, $y) {
+		$all_tables = true;
+		if($have_ll) {
+			$all_tables = $all_tables && $v->isTable($ll);
+		}
+		if($have_rr) {
+			$all_tables = $all_tables && $v->isTable($rr);
+		}
+		if($have_pp) {
+			$all_tables = $all_tables && $v->isTable($pp);
+		}
+		if(!$all_tables) {
+			return (new _hx_array(array($ll, $rr, $pp)));
+		}
+		$ll_table = null;
+		$rr_table = null;
+		$pp_table = null;
+		if($have_ll) {
+			$ll_table = $v->getTable($ll);
+		}
+		if($have_rr) {
+			$rr_table = $v->getTable($rr);
+		}
+		if($have_pp) {
+			$pp_table = $v->getTable($pp);
+		}
+		$compare = false;
+		$comp = new coopy_TableComparisonState();
+		$comp->a = $ll_table;
+		$comp->b = $rr_table;
+		$comp->p = $pp_table;
+		$comp->compare_flags = $this->flags;
+		$comp->getMeta();
+		$key = null;
+		if($comp->a_meta !== null) {
+			$key = $comp->a_meta->getName();
+		}
+		if($key === null && $comp->b_meta !== null) {
+			$key = $comp->b_meta->getName();
+		}
+		if($key === null) {
+			$key = _hx_string_rec($x, "") . "_" . _hx_string_rec($y, "");
+		}
+		if($this->align->comp !== null) {
+			if($this->align->comp->children === null) {
+				$this->align->comp->children = new haxe_ds_StringMap();
+				$this->align->comp->child_order = new _hx_array(array());
+				$compare = true;
+			} else {
+				$compare = !$this->align->comp->children->exists($key);
+			}
+		}
+		if($compare) {
+			$this->nesting_present = true;
+			$this->align->comp->children->set($key, $comp);
+			$this->align->comp->child_order->push($key);
+			$ct = new coopy_CompareTable($comp);
+			$ct->align();
+		} else {
+			$comp = $this->align->comp->children->get($key);
+		}
+		$ll_out = null;
+		$rr_out = null;
+		$pp_out = null;
+		if($comp->alignment->isMarkedAsIdentical() || $have_ll && !$have_rr || $have_rr && !$have_ll) {
+			$ll_out = "[" . _hx_string_or_null($key) . "]";
+			$rr_out = $ll_out;
+			$pp_out = $ll_out;
+		} else {
+			if($ll !== null) {
+				$ll_out = "[a." . _hx_string_or_null($key) . "]";
+			}
+			if($rr !== null) {
+				$rr_out = "[b." . _hx_string_or_null($key) . "]";
+			}
+			if($pp !== null) {
+				$pp_out = "[p." . _hx_string_or_null($key) . "]";
+			}
+		}
+		return (new _hx_array(array($ll_out, $rr_out, $pp_out)));
 	}
 	public function scanRow($unit, $output, $at, $i) {
 		{
@@ -851,7 +966,7 @@ class coopy_TableDiff {
 				if($cunit->r >= 0 && $unit->r >= 0) {
 					$rr = $this->b->getCell($cunit->r, $unit->r);
 					$have_rr = true;
-					if((coopy_TableDiff_2($this, $_g, $_g1, $at, $cunit, $dd, $dd_to, $dd_to_alt, $have_dd_to, $have_dd_to_alt, $have_ll, $have_pp, $have_rr, $i, $j, $ll, $output, $pp, $rr, $unit)) < 0) {
+					if((coopy_TableDiff_0($this, $_g, $_g1, $at, $cunit, $dd, $dd_to, $dd_to_alt, $have_dd_to, $have_dd_to_alt, $have_ll, $have_pp, $have_rr, $i, $j, $ll, $output, $pp, $rr, $unit)) < 0) {
 						if($rr !== null) {
 							if($this->v->toString($rr) !== "") {
 								if($this->flags->allowUpdate()) {
@@ -860,6 +975,13 @@ class coopy_TableDiff {
 							}
 						}
 					}
+				}
+				if($this->nested) {
+					$ndiff = $this->checkNesting($this->v, $have_ll, $ll, $have_rr, $rr, $have_pp, $pp, $i, $j);
+					$ll = $ndiff[0];
+					$rr = $ndiff[1];
+					$pp = $ndiff[2];
+					unset($ndiff);
 				}
 				if($have_pp) {
 					if(!$have_rr) {
@@ -966,6 +1088,10 @@ class coopy_TableDiff {
 		}
 	}
 	public function hilite($output) {
+		$output = coopy_Coopy::tablify($output);
+		return $this->hiliteSingle($output);
+	}
+	public function hiliteSingle($output) {
 		if(!$output->isResizable()) {
 			return false;
 		}
@@ -1113,11 +1239,53 @@ class coopy_TableDiff {
 		}
 		return true;
 	}
+	public function hiliteWithNesting($output) {
+		$base = $output->add("base");
+		$result = $this->hiliteSingle($base);
+		if(!$result) {
+			return false;
+		}
+		if($this->align->comp === null) {
+			return true;
+		}
+		$order = $this->align->comp->child_order;
+		if($order === null) {
+			return true;
+		}
+		$output->alignment = $this->align;
+		{
+			$_g = 0;
+			while($_g < $order->length) {
+				$name = $order[$_g];
+				++$_g;
+				$child = $this->align->comp->children->get($name);
+				$alignment = $child->alignment;
+				if($alignment->isMarkedAsIdentical()) {
+					$this->align->comp->children->set($name, null);
+					continue;
+				}
+				$td = new coopy_TableDiff($alignment, $this->flags);
+				$child_output = $output->add($name);
+				$result = $result && $td->hiliteSingle($child_output);
+				unset($td,$name,$child_output,$child,$alignment);
+			}
+		}
+		return $result;
+	}
 	public function hasDifference() {
 		return $this->diff_found;
 	}
 	public function hasSchemaDifference() {
 		return $this->schema_diff_found;
+	}
+	public function isNested() {
+		return $this->nesting_present;
+	}
+	public function getComparisonState() {
+		if($this->align === null) {
+			return null;
+		}
+		return $this->align->comp;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
@@ -1131,19 +1299,7 @@ class coopy_TableDiff {
 	}
 	function __toString() { return 'coopy.TableDiff'; }
 }
-function coopy_TableDiff_0(&$__hx__this, &$aa, &$bb, &$v) {
-	{
-		$s = $v->toString($aa);
-		return trim($s);
-	}
-}
-function coopy_TableDiff_1(&$__hx__this, &$aa, &$bb, &$v) {
-	{
-		$s1 = $v->toString($bb);
-		return trim($s1);
-	}
-}
-function coopy_TableDiff_2(&$__hx__this, &$_g, &$_g1, &$at, &$cunit, &$dd, &$dd_to, &$dd_to_alt, &$have_dd_to, &$have_dd_to_alt, &$have_ll, &$have_pp, &$have_rr, &$i, &$j, &$ll, &$output, &$pp, &$rr, &$unit) {
+function coopy_TableDiff_0(&$__hx__this, &$_g, &$_g1, &$at, &$cunit, &$dd, &$dd_to, &$dd_to_alt, &$have_dd_to, &$have_dd_to_alt, &$have_ll, &$have_pp, &$have_rr, &$i, &$j, &$ll, &$output, &$pp, &$rr, &$unit) {
 	if($have_pp) {
 		return $cunit->p;
 	} else {
